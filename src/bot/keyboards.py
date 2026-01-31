@@ -3,6 +3,26 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from typing import List, Optional
 
 
+def my_subs_keyboard(page: int = 0, total_pages: int = 1) -> InlineKeyboardMarkup:
+    """Клавіатура для списку підписок з пагінацією"""
+    builder = InlineKeyboardBuilder()
+    
+    # Pagination buttons
+    nav_buttons = []
+    if page > 0:
+        nav_buttons.append(InlineKeyboardButton(text="◀️", callback_data=f"mysubs:page:{page-1}"))
+    nav_buttons.append(InlineKeyboardButton(text=f"{page+1}/{total_pages}", callback_data="mysubs:info"))
+    if page < total_pages - 1:
+        nav_buttons.append(InlineKeyboardButton(text="▶️", callback_data=f"mysubs:page:{page+1}"))
+    
+    if nav_buttons:
+        builder.row(*nav_buttons)
+    
+    builder.row(InlineKeyboardButton(text="🔙 Меню компаній", callback_data="menu:companies"))
+    
+    return builder.as_markup()
+
+
 def main_menu_keyboard() -> InlineKeyboardMarkup:
     """Головне меню бота"""
     builder = InlineKeyboardBuilder()
@@ -29,10 +49,11 @@ def companies_menu_keyboard() -> InlineKeyboardMarkup:
     
     builder.row(
         InlineKeyboardButton(text="➕ Додати компанію", callback_data="company:add"),
-        InlineKeyboardButton(text="📋 Список компаній", callback_data="company:list")
+        InlineKeyboardButton(text="� Мої підписки", callback_data="company:my_subs")
     )
     builder.row(
-        InlineKeyboardButton(text="� Статус OpenDataBot", callback_data="company:odb_status")
+        InlineKeyboardButton(text="🌐 Всі компанії", callback_data="company:list"),
+        InlineKeyboardButton(text="📡 Статус сервісу", callback_data="company:odb_status")
     )
     builder.row(
         InlineKeyboardButton(text="🔙 Головне меню", callback_data="menu:main")

@@ -4,7 +4,7 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.storage.models import (
     MonitoredCompany, OpenDataBotSubscription, WorksectionCase,
-    CourtCase, NotificationSent, SyncState
+    CourtCase, NotificationSent, SyncState, UserSubscription
 )
 import logging
 
@@ -321,3 +321,67 @@ class SyncStateRepository:
             self.session.add(state)
         
         await self.session.commit()
+
+
+class UserSubscriptionRepository:
+    """Repository for user-company subscriptions (multi-tenant)"""
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def subscribe(self, user_id: int, edrpou: str) -> UserSubscription:
+        """Subscribe user to company notifications"""
+        existing = await self.session.execute(
+            select(UserSubscription)
+            .where(UserSubscription.user_id == user_id)
+            .where(UserSubscription.edrpou == edrpou)
+        )
+        sub = existing.scalar_one_or_none()
+        
+        if sub:
+            sub.is_active = True
+        else:
+            sub = UserSubscription(user_id=user_id, edrpou=edrpou, is_active=True)
+            self.session.add(sub)
+        
+        await self.session.commit()
+        return sub
+    
+    async def unsubscribe(self, user_id: int, edrpou: str) -> bool:
+        """Unsubscribe user from company"""
+        result = await self.session.execute(
+            update(UserSubscription)
+            .where(UserSubscription.user_id == user_id)
+            .where(UserSubscription.edrpou == edrpou)
+            .values(is_active=False)
+        )
+        await self.session.commit()
+        return result.rowcount > 0
+    
+    async def get_user_subscriptions(self, user_id: int) -> List[UserSubscription]:
+        """Get all active subscriptions for a user"""
+        result = await self.session.execute(
+            select(UserSubscription)
+            .where(UserSubscription.user_id == user_id)
+            .where(UserSubscription.is_active == True)
+        )
+        return list(result.scalars().all())
+    
+    async def get_users_for_edrpou(self, edrpou: str) -> List[int]:
+        """Get all user IDs subscribed to this EDRPOU"""
+        result = await self.session.execute(
+            select(UserSubscription.user_id)
+            .where(UserSubscription.edrpou == edrpou)
+            .where(UserSubscription.is_active == True)
+        )
+        return [r[0] for r in result.all()]
+    
+    async def is_subscribed(self, user_id: int, edrpou: str) -> bool:
+        """Check if user is subscribed to company"""
+        result = await self.session.execute(
+            select(UserSubscription.id)
+            .where(UserSubscription.user_id == user_id)
+            .where(UserSubscription.edrpou == edrpou)
+            .where(UserSubscription.is_active == True)
+            .limit(1)
+        )
+        return result.scalar_one_or_none() is not None

@@ -138,3 +138,18 @@ class SyncState(Base):
     key_name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     value: Mapped[Optional[str]] = mapped_column(Text)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class UserSubscription(Base):
+    """User subscriptions to companies (multi-tenant)"""
+    __tablename__ = "user_subscriptions"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    edrpou: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    __table_args__ = (
+        UniqueConstraint('user_id', 'edrpou', name='uq_user_edrpou'),
+    )

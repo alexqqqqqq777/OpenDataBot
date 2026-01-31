@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from src.storage import (
     AsyncSessionLocal, CompanyRepository, NotificationRepository,
-    WorksectionCaseRepository, CourtCaseRepository
+    WorksectionCaseRepository, CourtCaseRepository, UserSubscriptionRepository
 )
 from src.utils import validate_edrpou, format_edrpou
 from src.clients import OpenDataBotClient, WorksectionClient
@@ -13,7 +13,8 @@ from src.bot.keyboards import (
     main_menu_keyboard, companies_menu_keyboard, cases_menu_keyboard,
     stats_keyboard, settings_keyboard, sync_keyboard,
     company_actions_keyboard, confirm_delete_keyboard, back_to_main_keyboard,
-    cancel_keyboard, pagination_keyboard, threat_level_filter_keyboard
+    cancel_keyboard, pagination_keyboard, threat_level_filter_keyboard,
+    my_subs_keyboard
 )
 from datetime import datetime
 import logging
@@ -228,16 +229,21 @@ async def process_company_name(message: Message, state: FSMContext):
                 user_id=message.from_user.id
             )
             
-            # Create OpenDataBot subscription immediately
-            odb_status = "⏳"
+            # Create user subscription for notifications
+            user_sub_repo = UserSubscriptionRepository(session)
+            await user_sub_repo.subscribe(message.from_user.id, edrpou)
+            
+            # Create OpenDataBot subscription (if not exists)
+            odb_status = "✅"
             try:
                 odb = OpenDataBotClient()
-                await odb.create_subscription(
-                    subscription_type='company',
-                    subscription_key=edrpou
-                )
-                odb_status = "✅"
-                logger.info(f"OpenDataBot subscription created for {edrpou}")
+                existing_subs = await odb.get_subscriptions(subscription_key=edrpou)
+                if not existing_subs:
+                    await odb.create_subscription(
+                        subscription_type='company',
+                        subscription_key=edrpou
+                    )
+                    logger.info(f"OpenDataBot subscription created for {edrpou}")
             except Exception as odb_err:
                 logger.error(f"Failed to create ODB subscription for {edrpou}: {odb_err}")
                 odb_status = "❌"
@@ -246,7 +252,8 @@ async def process_company_name(message: Message, state: FSMContext):
             text += f"├ ЄДРПОУ: <code>{edrpou}</code>\n"
             if company_name:
                 text += f"├ Назва: {company_name}\n"
-            text += f"└ OpenDataBot: {odb_status}"
+            text += f"├ OpenDataBot: {odb_status}\n"
+            text += f"└ 🔔 Сповіщення: увімкнено"
             
             await message.answer(text, reply_markup=back_to_main_keyboard(), parse_mode="HTML")
             logger.info(f"Company added: {edrpou} by user {message.from_user.id}")
@@ -348,50 +355,103 @@ async def callback_company_list(callback: CallbackQuery):
     await callback.answer()
 
 
+@router.callback_query(F.data == "company:my_subs")
+async def callback_my_subscriptions(callback: CallbackQuery):
+    """Мої підписки - сторінка 0"""
+    await show_my_subs_page(callback, 0)
+
+
+@router.callback_query(F.data.startswith("mysubs:page:"))
+async def callback_my_subs_page(callback: CallbackQuery):
+    """Пагінація списку підписок"""
+    page = int(callback.data.split(":")[2])
+    await show_my_subs_page(callback, page)
+
+
+async def show_my_subs_page(callback: CallbackQuery, page: int = 0):
+    """Показати сторінку підписок"""
+    user_id = callback.from_user.id
+    per_page = 15
+    
+    async with AsyncSessionLocal() as session:
+        user_sub_repo = UserSubscriptionRepository(session)
+        company_repo = CompanyRepository(session)
+        
+        my_subs = await user_sub_repo.get_user_subscriptions(user_id)
+        
+        if not my_subs:
+            await callback.message.edit_text(
+                "🔔 <b>Мої підписки</b>\n\n"
+                "У вас немає активних підписок.\n"
+                "Додайте компанію для отримання сповіщень.",
+                reply_markup=companies_menu_keyboard(),
+                parse_mode="HTML"
+            )
+            await callback.answer()
+            return
+        
+        total = len(my_subs)
+        total_pages = (total + per_page - 1) // per_page
+        page = max(0, min(page, total_pages - 1))
+        
+        start = page * per_page
+        end = start + per_page
+        page_subs = my_subs[start:end]
+        
+        text = f"🔔 <b>Мої підписки</b> ({total})\n\n"
+        
+        for sub in page_subs:
+            company = await company_repo.get_company(sub.edrpou)
+            if company and company.company_name:
+                name = company.company_name
+                if len(name) > 22:
+                    name = name[:20] + "…"
+            else:
+                name = "—"
+            text += f"<code>{sub.edrpou}</code> {name}\n"
+        
+        await callback.message.edit_text(
+            text,
+            reply_markup=my_subs_keyboard(page, total_pages),
+            parse_mode="HTML"
+        )
+    
+    await callback.answer()
+
+
 @router.callback_query(F.data == "company:odb_status")
 async def callback_odb_status(callback: CallbackQuery):
-    """Статус підписок OpenDataBot"""
-    await callback.message.edit_text("🔄 Перевіряю підключення...", parse_mode="HTML")
+    """Статус сервісу OpenDataBot"""
+    await callback.message.edit_text("🔄 Перевіряю...", parse_mode="HTML")
     
     try:
         odb = OpenDataBotClient()
         subs = await odb.get_subscriptions()
         
-        # Get local companies count
         async with AsyncSessionLocal() as session:
-            repo = CompanyRepository(session)
-            local_companies = await repo.get_all_companies()
-            local_count = len(local_companies)
-            active_count = sum(1 for c in local_companies if c.is_active)
+            company_repo = CompanyRepository(session)
+            user_sub_repo = UserSubscriptionRepository(session)
+            
+            local_companies = await company_repo.get_all_companies()
+            my_subs = await user_sub_repo.get_user_subscriptions(callback.from_user.id)
         
         odb_count = len(subs)
+        local_count = len(local_companies)
+        my_count = len(my_subs)
         
-        # Status emoji
-        if odb_count == local_count:
-            sync_status = "✅ Синхронізовано"
-        elif odb_count > local_count:
-            sync_status = f"⚠️ OpenDataBot: +{odb_count - local_count}"
-        else:
-            sync_status = f"⚠️ Локально: +{local_count - odb_count}"
-        
-        text = f"""📡 <b>Статус моніторингу</b>
+        text = f"""📡 <b>Статус сервісу</b>
 
 <b>OpenDataBot API</b>
-├ Підписок: <b>{odb_count}</b>
-├ Тип: company (ЄДРПОУ)
+├ Всього підписок: <b>{odb_count}</b>
 └ Статус: 🟢 Активний
 
-<b>Локальна база</b>
+<b>База даних</b>
 ├ Компаній: <b>{local_count}</b>
-└ Активних: <b>{active_count}</b>
+└ Ваших підписок: <b>{my_count}</b>
 
-<b>Синхронізація:</b> {sync_status}
-
-<b>Розклад перевірок:</b>
-├ 🔍 Нові справи: 8:00, 20:00
-└ 📁 Worksection: 7:00, 19:00
-
-🔔 Сповіщення активні"""
+<b>Розклад:</b>
+├ 🔍 Перевірка: 8:00, 20:00
+└ 📁 Worksection: 7:00, 19:00"""
         
         await callback.message.edit_text(
             text,
@@ -401,9 +461,7 @@ async def callback_odb_status(callback: CallbackQuery):
     except Exception as e:
         logger.error(f"ODB status error: {e}")
         await callback.message.edit_text(
-            f"📡 <b>OpenDataBot</b>\n\n"
-            f"❌ Помилка підключення\n"
-            f"<code>{str(e)[:80]}</code>",
+            f"📡 <b>Статус сервісу</b>\n\n❌ Помилка: <code>{str(e)[:60]}</code>",
             reply_markup=companies_menu_keyboard(),
             parse_mode="HTML"
         )

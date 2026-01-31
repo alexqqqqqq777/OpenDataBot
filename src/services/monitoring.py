@@ -4,7 +4,7 @@ from src.clients import OpenDataBotClient
 from src.storage import (
     AsyncSessionLocal, CompanyRepository, SubscriptionRepository,
     WorksectionCaseRepository, NotificationRepository, SyncStateRepository,
-    CourtCaseRepository
+    CourtCaseRepository, UserSubscriptionRepository
 )
 from src.services.threat_analyzer import analyze_threat
 from src.services.notifier import TelegramNotifier
@@ -202,16 +202,31 @@ class CourtMonitoringService:
                         'threat_level': threat_analysis.get('threat_level', 'MEDIUM'),
                     })
                     
-                    # Send notification
-                    msg_id = await self.notifier.send_case_notification(
-                        case_data=case_data,
-                        threat_analysis=threat_analysis,
-                        edrpou_matches=[event_edrpou]
-                    )
+                    # Send notification to all subscribed users
+                    user_sub_repo = UserSubscriptionRepository(session)
+                    subscribed_users = await user_sub_repo.get_users_for_edrpou(event_edrpou)
                     
-                    if msg_id:
-                        notifications_sent += 1
-                        logger.info(f"Sent notification for case {normalized}")
+                    if subscribed_users:
+                        for user_id in subscribed_users:
+                            msg_id = await self.notifier.send_case_notification(
+                                case_data=case_data,
+                                threat_analysis=threat_analysis,
+                                edrpou_matches=[event_edrpou],
+                                chat_id=str(user_id)
+                            )
+                            if msg_id:
+                                notifications_sent += 1
+                        logger.info(f"Sent {len(subscribed_users)} notifications for case {normalized}")
+                    else:
+                        # Fallback to admin if no user subscriptions
+                        msg_id = await self.notifier.send_case_notification(
+                            case_data=case_data,
+                            threat_analysis=threat_analysis,
+                            edrpou_matches=[event_edrpou]
+                        )
+                        if msg_id:
+                            notifications_sent += 1
+                            logger.info(f"Sent admin notification for case {normalized}")
             
             # Update last processed ID
             if max_id and max_id != last_id:

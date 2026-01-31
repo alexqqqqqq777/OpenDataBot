@@ -37,14 +37,15 @@ class TelegramNotifier:
             logger.error("No chat ID configured for notifications")
             return None
         
-        # Generate case key for deduplication
-        case_key = generate_case_key(
+        # Generate case key for deduplication (per user)
+        base_case_key = generate_case_key(
             case_id=case_data.get('case_id'),
             case_number=case_data.get('normalized_case_number') or case_data.get('case_number'),
             court_code=case_data.get('court_code')
         )
+        case_key = f"{base_case_key}:{target_chat}"  # Per-user deduplication
         
-        # Check if already notified
+        # Check if already notified to this user
         async with AsyncSessionLocal() as session:
             repo = NotificationRepository(session)
             
