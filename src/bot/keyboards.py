@@ -1,0 +1,225 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+from typing import List, Optional
+
+
+def main_menu_keyboard() -> InlineKeyboardMarkup:
+    """Головне меню бота"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="🏢 Компанії", callback_data="menu:companies"),
+        InlineKeyboardButton(text="⚖️ Справи", callback_data="menu:cases")
+    )
+    builder.row(
+        InlineKeyboardButton(text="📊 Статистика", callback_data="menu:stats"),
+        InlineKeyboardButton(text="⚙️ Налаштування", callback_data="menu:settings")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🔄 Синхронізація", callback_data="menu:sync"),
+        InlineKeyboardButton(text="ℹ️ Допомога", callback_data="menu:help")
+    )
+    
+    return builder.as_markup()
+
+
+def companies_menu_keyboard() -> InlineKeyboardMarkup:
+    """Меню управління компаніями"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="➕ Додати компанію", callback_data="company:add"),
+        InlineKeyboardButton(text="📋 Список компаній", callback_data="company:list")
+    )
+    builder.row(
+        InlineKeyboardButton(text="� Статус OpenDataBot", callback_data="company:odb_status")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🔙 Головне меню", callback_data="menu:main")
+    )
+    
+    return builder.as_markup()
+
+
+def cases_menu_keyboard() -> InlineKeyboardMarkup:
+    """Меню судових справ"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="🚨 Критичні справи", callback_data="cases:critical"),
+        InlineKeyboardButton(text="⚠️ Нові справи", callback_data="cases:new")
+    )
+    builder.row(
+        InlineKeyboardButton(text="📋 Всі справи", callback_data="cases:all")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🔙 Головне меню", callback_data="menu:main")
+    )
+    
+    return builder.as_markup()
+
+
+def stats_keyboard() -> InlineKeyboardMarkup:
+    """Меню статистики"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="📈 Загальна статистика", callback_data="stats:general")
+    )
+    builder.row(
+        InlineKeyboardButton(text=" Головне меню", callback_data="menu:main")
+    )
+    
+    return builder.as_markup()
+
+
+def settings_keyboard() -> InlineKeyboardMarkup:
+    """Меню налаштувань"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="⏰ Розклад", callback_data="settings:schedule"),
+        InlineKeyboardButton(text="🔑 API статус", callback_data="settings:api_status")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🔙 Головне меню", callback_data="menu:main")
+    )
+    
+    return builder.as_markup()
+
+
+def sync_keyboard() -> InlineKeyboardMarkup:
+    """Меню синхронізації"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="🔄 Worksection", callback_data="sync:worksection"),
+        InlineKeyboardButton(text="🔄 OpenDataBot", callback_data="sync:opendatabot")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🔄 Повна синхронізація", callback_data="sync:full")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🔙 Головне меню", callback_data="menu:main")
+    )
+    
+    return builder.as_markup()
+
+
+def company_actions_keyboard(edrpou: str, is_active: bool = True) -> InlineKeyboardMarkup:
+    """Дії з компанією"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="📋 Справи компанії", callback_data=f"company:cases:{edrpou}"),
+        InlineKeyboardButton(text="ℹ️ Інформація", callback_data=f"company:info:{edrpou}")
+    )
+    
+    if is_active:
+        builder.row(
+            InlineKeyboardButton(text="⏸️ Призупинити", callback_data=f"company:pause:{edrpou}")
+        )
+    else:
+        builder.row(
+            InlineKeyboardButton(text="▶️ Відновити", callback_data=f"company:resume:{edrpou}")
+        )
+    
+    builder.row(
+        InlineKeyboardButton(text="🗑️ Видалити", callback_data=f"company:delete:{edrpou}")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🔙 До списку", callback_data="company:list")
+    )
+    
+    return builder.as_markup()
+
+
+def case_actions_keyboard(case_id: str) -> InlineKeyboardMarkup:
+    """Дії зі справою"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="📄 Детальніше", callback_data=f"case:details:{case_id}"),
+        InlineKeyboardButton(text="🔗 Джерело", callback_data=f"case:source:{case_id}")
+    )
+    builder.row(
+        InlineKeyboardButton(text="📝 Додати в Worksection", callback_data=f"case:to_ws:{case_id}"),
+        InlineKeyboardButton(text="✅ Позначити оброблено", callback_data=f"case:processed:{case_id}")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🔙 До списку", callback_data="cases:all")
+    )
+    
+    return builder.as_markup()
+
+
+def confirm_delete_keyboard(edrpou: str) -> InlineKeyboardMarkup:
+    """Підтвердження видалення"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="✅ Так, видалити", callback_data=f"confirm:delete:{edrpou}"),
+        InlineKeyboardButton(text="❌ Скасувати", callback_data=f"company:view:{edrpou}")
+    )
+    
+    return builder.as_markup()
+
+
+def pagination_keyboard(
+    current_page: int, 
+    total_pages: int, 
+    callback_prefix: str
+) -> InlineKeyboardMarkup:
+    """Пагінація"""
+    builder = InlineKeyboardBuilder()
+    
+    buttons = []
+    
+    if current_page > 1:
+        buttons.append(InlineKeyboardButton(text="◀️", callback_data=f"{callback_prefix}:{current_page-1}"))
+    
+    buttons.append(InlineKeyboardButton(text=f"{current_page}/{total_pages}", callback_data="noop"))
+    
+    if current_page < total_pages:
+        buttons.append(InlineKeyboardButton(text="▶️", callback_data=f"{callback_prefix}:{current_page+1}"))
+    
+    builder.row(*buttons)
+    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="menu:main"))
+    
+    return builder.as_markup()
+
+
+def back_to_main_keyboard() -> InlineKeyboardMarkup:
+    """Кнопка повернення до головного меню"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="🔙 Головне меню", callback_data="menu:main"))
+    return builder.as_markup()
+
+
+def cancel_keyboard() -> InlineKeyboardMarkup:
+    """Кнопка скасування"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="❌ Скасувати", callback_data="cancel"))
+    return builder.as_markup()
+
+
+def threat_level_filter_keyboard() -> InlineKeyboardMarkup:
+    """Фільтр за рівнем загрози"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="🚨 Критичні", callback_data="filter:threat:CRITICAL"),
+        InlineKeyboardButton(text="⚠️ Високі", callback_data="filter:threat:HIGH")
+    )
+    builder.row(
+        InlineKeyboardButton(text="📋 Середні", callback_data="filter:threat:MEDIUM"),
+        InlineKeyboardButton(text="ℹ️ Низькі", callback_data="filter:threat:LOW")
+    )
+    builder.row(
+        InlineKeyboardButton(text="📊 Всі рівні", callback_data="filter:threat:ALL")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🔙 Назад", callback_data="menu:cases")
+    )
+    
+    return builder.as_markup()

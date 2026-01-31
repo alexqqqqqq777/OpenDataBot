@@ -1,0 +1,323 @@
+from typing import List, Optional
+from datetime import datetime
+from sqlalchemy import select, update, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.storage.models import (
+    MonitoredCompany, OpenDataBotSubscription, WorksectionCase,
+    CourtCase, NotificationSent, SyncState
+)
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class CompanyRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def add_company(self, edrpou: str, company_name: str = None, user_id: int = None) -> MonitoredCompany:
+        company = MonitoredCompany(
+            edrpou=edrpou,
+            company_name=company_name,
+            added_by_user_id=user_id,
+            is_active=True
+        )
+        self.session.add(company)
+        await self.session.commit()
+        await self.session.refresh(company)
+        return company
+    
+    async def get_company(self, edrpou: str) -> Optional[MonitoredCompany]:
+        result = await self.session.execute(
+            select(MonitoredCompany).where(MonitoredCompany.edrpou == edrpou)
+        )
+        return result.scalar_one_or_none()
+    
+    async def get_active_companies(self) -> List[MonitoredCompany]:
+        result = await self.session.execute(
+            select(MonitoredCompany).where(MonitoredCompany.is_active == True)
+        )
+        return list(result.scalars().all())
+    
+    async def get_all_companies(self) -> List[MonitoredCompany]:
+        result = await self.session.execute(select(MonitoredCompany))
+        return list(result.scalars().all())
+    
+    async def deactivate_company(self, edrpou: str) -> bool:
+        result = await self.session.execute(
+            update(MonitoredCompany)
+            .where(MonitoredCompany.edrpou == edrpou)
+            .values(is_active=False, updated_at=datetime.utcnow())
+        )
+        await self.session.commit()
+        return result.rowcount > 0
+    
+    async def activate_company(self, edrpou: str) -> bool:
+        result = await self.session.execute(
+            update(MonitoredCompany)
+            .where(MonitoredCompany.edrpou == edrpou)
+            .values(is_active=True, updated_at=datetime.utcnow())
+        )
+        await self.session.commit()
+        return result.rowcount > 0
+    
+    async def delete_company(self, edrpou: str) -> bool:
+        result = await self.session.execute(
+            delete(MonitoredCompany).where(MonitoredCompany.edrpou == edrpou)
+        )
+        await self.session.commit()
+        return result.rowcount > 0
+
+
+class SubscriptionRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def add_subscription(
+        self, subscription_id: str, edrpou: str, 
+        subscription_type: str, subscription_key: str = None
+    ) -> OpenDataBotSubscription:
+        sub = OpenDataBotSubscription(
+            subscription_id=subscription_id,
+            edrpou=edrpou,
+            subscription_type=subscription_type,
+            subscription_key=subscription_key or edrpou
+        )
+        self.session.add(sub)
+        await self.session.commit()
+        return sub
+    
+    async def get_subscriptions_by_edrpou(self, edrpou: str) -> List[OpenDataBotSubscription]:
+        result = await self.session.execute(
+            select(OpenDataBotSubscription)
+            .where(OpenDataBotSubscription.edrpou == edrpou)
+            .where(OpenDataBotSubscription.is_active == True)
+        )
+        return list(result.scalars().all())
+    
+    async def get_all_active_subscriptions(self) -> List[OpenDataBotSubscription]:
+        result = await self.session.execute(
+            select(OpenDataBotSubscription).where(OpenDataBotSubscription.is_active == True)
+        )
+        return list(result.scalars().all())
+    
+    async def deactivate_subscription(self, subscription_id: str) -> bool:
+        result = await self.session.execute(
+            update(OpenDataBotSubscription)
+            .where(OpenDataBotSubscription.subscription_id == subscription_id)
+            .values(is_active=False)
+        )
+        await self.session.commit()
+        return result.rowcount > 0
+
+
+class WorksectionCaseRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def upsert_case(
+        self, normalized_case_number: str, task_id: str,
+        raw_name: str = None, project_id: str = None, project_name: str = None
+    ) -> WorksectionCase:
+        existing = await self.session.execute(
+            select(WorksectionCase)
+            .where(WorksectionCase.normalized_case_number == normalized_case_number)
+            .where(WorksectionCase.task_id == task_id)
+        )
+        case = existing.scalar_one_or_none()
+        
+        if case:
+            case.raw_name = raw_name
+            case.project_id = project_id
+            case.project_name = project_name
+            case.synced_at = datetime.utcnow()
+        else:
+            case = WorksectionCase(
+                normalized_case_number=normalized_case_number,
+                task_id=task_id,
+                raw_name=raw_name,
+                project_id=project_id,
+                project_name=project_name
+            )
+            self.session.add(case)
+        
+        await self.session.commit()
+        return case
+    
+    async def case_exists(self, normalized_case_number: str) -> bool:
+        result = await self.session.execute(
+            select(WorksectionCase.id)
+            .where(WorksectionCase.normalized_case_number == normalized_case_number)
+            .limit(1)
+        )
+        return result.scalar_one_or_none() is not None
+    
+    async def get_all_case_numbers(self) -> List[str]:
+        result = await self.session.execute(
+            select(WorksectionCase.normalized_case_number).distinct()
+        )
+        return [r[0] for r in result.all()]
+
+
+class CourtCaseRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def upsert_case(self, case_data: dict) -> CourtCase:
+        case_id = case_data.get('case_id')
+        
+        if case_id:
+            existing = await self.session.execute(
+                select(CourtCase).where(CourtCase.case_id == case_id)
+            )
+            case = existing.scalar_one_or_none()
+        else:
+            case = None
+        
+        if case:
+            for key, value in case_data.items():
+                if hasattr(case, key):
+                    setattr(case, key, value)
+            case.fetched_at = datetime.utcnow()
+        else:
+            case = CourtCase(**case_data)
+            self.session.add(case)
+        
+        await self.session.commit()
+        return case
+    
+    async def get_case(self, case_id: str = None, case_number: str = None) -> Optional[CourtCase]:
+        if case_id:
+            result = await self.session.execute(
+                select(CourtCase).where(CourtCase.case_id == case_id)
+            )
+        elif case_number:
+            result = await self.session.execute(
+                select(CourtCase).where(CourtCase.normalized_case_number == case_number)
+            )
+        else:
+            return None
+        return result.scalar_one_or_none()
+    
+    async def get_cases_by_threat_level(self, threat_level: str, limit: int = 10) -> List[CourtCase]:
+        result = await self.session.execute(
+            select(CourtCase)
+            .where(CourtCase.threat_level == threat_level)
+            .order_by(CourtCase.fetched_at.desc())
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+    
+    async def get_cases_by_status(self, status: str, limit: int = 10) -> List[CourtCase]:
+        result = await self.session.execute(
+            select(CourtCase)
+            .where(CourtCase.status == status)
+            .order_by(CourtCase.fetched_at.desc())
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+    
+    async def get_recent_cases(self, limit: int = 15) -> List[CourtCase]:
+        result = await self.session.execute(
+            select(CourtCase)
+            .order_by(CourtCase.fetched_at.desc())
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+    
+    async def get_cases_by_edrpou(self, edrpou: str, limit: int = 20) -> List[CourtCase]:
+        result = await self.session.execute(
+            select(CourtCase)
+            .where(CourtCase.edrpou_matches.contains(edrpou))
+            .order_by(CourtCase.fetched_at.desc())
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+    
+    async def update_case_status(self, case_id: str, status: str) -> bool:
+        result = await self.session.execute(
+            update(CourtCase)
+            .where(CourtCase.case_id == case_id)
+            .values(status=status, updated_at=datetime.utcnow())
+        )
+        await self.session.commit()
+        return result.rowcount > 0
+    
+    async def mark_in_worksection(self, case_number: str, task_id: str = None) -> bool:
+        result = await self.session.execute(
+            update(CourtCase)
+            .where(CourtCase.normalized_case_number == case_number)
+            .values(
+                is_in_worksection=True,
+                worksection_task_id=task_id,
+                status="in_worksection",
+                updated_at=datetime.utcnow()
+            )
+        )
+        await self.session.commit()
+        return result.rowcount > 0
+
+
+class NotificationRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def notification_sent(self, case_key: str) -> bool:
+        result = await self.session.execute(
+            select(NotificationSent.id)
+            .where(NotificationSent.case_key == case_key)
+            .limit(1)
+        )
+        return result.scalar_one_or_none() is not None
+    
+    async def add_notification(
+        self, case_key: str, normalized_case_number: str = None,
+        threat_level: str = None, telegram_message_id: str = None,
+        telegram_chat_id: str = None, payload_hash: str = None
+    ) -> NotificationSent:
+        notification = NotificationSent(
+            case_key=case_key,
+            normalized_case_number=normalized_case_number,
+            threat_level=threat_level,
+            telegram_message_id=telegram_message_id,
+            telegram_chat_id=telegram_chat_id,
+            payload_hash=payload_hash
+        )
+        self.session.add(notification)
+        await self.session.commit()
+        return notification
+    
+    async def get_recent_notifications(self, limit: int = 10) -> List[NotificationSent]:
+        result = await self.session.execute(
+            select(NotificationSent)
+            .order_by(NotificationSent.sent_at.desc())
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+
+
+class SyncStateRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def get_state(self, key: str) -> Optional[str]:
+        result = await self.session.execute(
+            select(SyncState.value).where(SyncState.key_name == key)
+        )
+        row = result.scalar_one_or_none()
+        return row
+    
+    async def set_state(self, key: str, value: str):
+        existing = await self.session.execute(
+            select(SyncState).where(SyncState.key_name == key)
+        )
+        state = existing.scalar_one_or_none()
+        
+        if state:
+            state.value = value
+            state.updated_at = datetime.utcnow()
+        else:
+            state = SyncState(key_name=key, value=value)
+            self.session.add(state)
+        
+        await self.session.commit()
