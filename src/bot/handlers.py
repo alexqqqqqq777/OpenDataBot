@@ -157,7 +157,7 @@ async def callback_add_company_start(callback: CallbackQuery, state: FSMContext)
 
 @router.message(AddCompanyStates.waiting_for_edrpou)
 async def process_edrpou(message: Message, state: FSMContext):
-    """Обробка ЄДРПОУ"""
+    """Обробка ЄДРПОУ та додавання компанії"""
     edrpou = message.text.strip()
     
     if not validate_edrpou(edrpou):
@@ -171,100 +171,100 @@ async def process_edrpou(message: Message, state: FSMContext):
         return
     
     edrpou = format_edrpou(edrpou)
-    await state.update_data(edrpou=edrpou)
-    await state.set_state(AddCompanyStates.waiting_for_name)
-    
-    await message.answer(
-        f"✅ ЄДРПОУ: <code>{edrpou}</code>\n\n"
-        "Введіть назву компанії\n"
-        "(або натисніть /skip щоб пропустити):",
-        reply_markup=cancel_keyboard(),
-        parse_mode="HTML"
-    )
-
-
-@router.message(Command("skip"), AddCompanyStates.waiting_for_name)
-@router.message(AddCompanyStates.waiting_for_name)
-async def process_company_name(message: Message, state: FSMContext):
-    """Обробка назви компанії"""
-    data = await state.get_data()
-    edrpou = data.get('edrpou')
-    
-    company_name = None if message.text == "/skip" else message.text.strip()
     
     async with AsyncSessionLocal() as session:
         repo = CompanyRepository(session)
         
         existing = await repo.get_company(edrpou)
         if existing:
-            if existing.is_active:
+            # Company exists - check if user already subscribed
+            user_sub_repo = UserSubscriptionRepository(session)
+            user_sub = await user_sub_repo.get_subscription(message.from_user.id, edrpou)
+            
+            if user_sub and user_sub.is_active:
                 await message.answer(
-                    f"ℹ️ Компанія <code>{edrpou}</code> вже на моніторингу.",
+                    f"ℹ️ Ви вже підписані на <code>{edrpou}</code>",
                     reply_markup=back_to_main_keyboard(),
                     parse_mode="HTML"
                 )
             else:
-                await repo.activate_company(edrpou)
+                # Add user subscription
+                await user_sub_repo.subscribe(message.from_user.id, edrpou)
+                
+                if not existing.is_active:
+                    await repo.activate_company(edrpou)
+                
+                name = existing.company_name or "—"
                 await message.answer(
-                    f"✅ Компанію <code>{edrpou}</code> відновлено.",
+                    f"✅ <b>Підписку додано!</b>\n\n"
+                    f"├ ЄДРПОУ: <code>{edrpou}</code>\n"
+                    f"├ Назва: {name}\n"
+                    f"└ 🔔 Сповіщення: увімкнено",
                     reply_markup=back_to_main_keyboard(),
                     parse_mode="HTML"
                 )
+                logger.info(f"User {message.from_user.id} subscribed to existing company {edrpou}")
+            
             await state.clear()
             return
         
+        # New company - ask for name
+        await state.update_data(edrpou=edrpou)
+        await state.set_state(AddCompanyStates.waiting_for_name)
+        await message.answer(
+            f"✅ ЄДРПОУ: <code>{edrpou}</code>\n\n"
+            "Компанія нова в системі.\n"
+            "Введіть назву компанії:",
+            reply_markup=cancel_keyboard(),
+            parse_mode="HTML"
+        )
+
+
+@router.message(AddCompanyStates.waiting_for_name)
+async def process_company_name(message: Message, state: FSMContext):
+    """Обробка назви нової компанії"""
+    data = await state.get_data()
+    edrpou = data.get('edrpou')
+    company_name = message.text.strip()
+    
+    async with AsyncSessionLocal() as session:
+        repo = CompanyRepository(session)
+        
+        await repo.add_company(
+            edrpou=edrpou,
+            company_name=company_name,
+            user_id=message.from_user.id
+        )
+        
+        # Create user subscription
+        user_sub_repo = UserSubscriptionRepository(session)
+        await user_sub_repo.subscribe(message.from_user.id, edrpou)
+        
+        # Create OpenDataBot subscription
+        odb_status = "✅"
         try:
-            # Try to get company info from OpenDataBot
             odb = OpenDataBotClient()
-            try:
-                company_info = await odb.get_company(edrpou)
-                if company_info and not company_name:
-                    company_name = company_info.get('short_name') or company_info.get('name')
-            except:
-                pass
-            
-            await repo.add_company(
-                edrpou=edrpou,
-                company_name=company_name,
-                user_id=message.from_user.id
-            )
-            
-            # Create user subscription for notifications
-            user_sub_repo = UserSubscriptionRepository(session)
-            await user_sub_repo.subscribe(message.from_user.id, edrpou)
-            
-            # Create OpenDataBot subscription (if not exists)
-            odb_status = "✅"
-            try:
-                odb = OpenDataBotClient()
-                existing_subs = await odb.get_subscriptions(subscription_key=edrpou)
-                if not existing_subs:
-                    await odb.create_subscription(
-                        subscription_type='company',
-                        subscription_key=edrpou
-                    )
-                    logger.info(f"OpenDataBot subscription created for {edrpou}")
-            except Exception as odb_err:
-                logger.error(f"Failed to create ODB subscription for {edrpou}: {odb_err}")
-                odb_status = "❌"
-            
-            text = "✅ <b>Компанію додано!</b>\n\n"
-            text += f"├ ЄДРПОУ: <code>{edrpou}</code>\n"
-            if company_name:
-                text += f"├ Назва: {company_name}\n"
-            text += f"├ OpenDataBot: {odb_status}\n"
-            text += f"└ 🔔 Сповіщення: увімкнено"
-            
-            await message.answer(text, reply_markup=back_to_main_keyboard(), parse_mode="HTML")
-            logger.info(f"Company added: {edrpou} by user {message.from_user.id}")
-            
-        except Exception as e:
-            logger.error(f"Error adding company {edrpou}: {e}")
-            await message.answer(
-                f"❌ Помилка: {e}",
-                reply_markup=back_to_main_keyboard(),
-                parse_mode="HTML"
-            )
+            existing_subs = await odb.get_subscriptions(subscription_key=edrpou)
+            if not existing_subs:
+                await odb.create_subscription(
+                    subscription_type='company',
+                    subscription_key=edrpou
+                )
+                logger.info(f"OpenDataBot subscription created for {edrpou}")
+        except Exception as odb_err:
+            logger.error(f"Failed to create ODB subscription for {edrpou}: {odb_err}")
+            odb_status = "❌"
+        
+        await message.answer(
+            f"✅ <b>Компанію додано!</b>\n\n"
+            f"├ ЄДРПОУ: <code>{edrpou}</code>\n"
+            f"├ Назва: {company_name}\n"
+            f"├ OpenDataBot: {odb_status}\n"
+            f"└ 🔔 Сповіщення: увімкнено",
+            reply_markup=back_to_main_keyboard(),
+            parse_mode="HTML"
+        )
+        logger.info(f"Company added: {edrpou} by user {message.from_user.id}")
     
     await state.clear()
 
@@ -293,28 +293,42 @@ async def cmd_add_company(message: Message, state: FSMContext):
     
     async with AsyncSessionLocal() as session:
         repo = CompanyRepository(session)
+        user_sub_repo = UserSubscriptionRepository(session)
         existing = await repo.get_company(edrpou)
         
         if existing:
-            await message.answer(
-                f"ℹ️ Компанія <code>{edrpou}</code> вже на моніторингу.",
-                reply_markup=back_to_main_keyboard(),
-                parse_mode="HTML"
-            )
+            # Company exists - add user subscription
+            user_sub = await user_sub_repo.get_subscription(message.from_user.id, edrpou)
+            if user_sub and user_sub.is_active:
+                await message.answer(
+                    f"ℹ️ Ви вже підписані на <code>{edrpou}</code>",
+                    reply_markup=back_to_main_keyboard(),
+                    parse_mode="HTML"
+                )
+            else:
+                await user_sub_repo.subscribe(message.from_user.id, edrpou)
+                await message.answer(
+                    f"✅ Підписку на <code>{edrpou}</code> додано!\n└ 🔔 Сповіщення: увімкнено",
+                    reply_markup=back_to_main_keyboard(),
+                    parse_mode="HTML"
+                )
             return
         
         await repo.add_company(edrpou=edrpou, company_name=company_name, user_id=message.from_user.id)
+        await user_sub_repo.subscribe(message.from_user.id, edrpou)
         
-        # Create OpenDataBot subscription immediately
+        # Create OpenDataBot subscription
         odb_status = "✅"
         try:
             odb = OpenDataBotClient()
-            await odb.create_subscription(subscription_type='company', subscription_key=edrpou)
+            existing_subs = await odb.get_subscriptions(subscription_key=edrpou)
+            if not existing_subs:
+                await odb.create_subscription(subscription_type='company', subscription_key=edrpou)
         except:
             odb_status = "❌"
         
         await message.answer(
-            f"✅ Компанію <code>{edrpou}</code> додано!\n└ OpenDataBot: {odb_status}",
+            f"✅ Компанію <code>{edrpou}</code> додано!\n├ OpenDataBot: {odb_status}\n└ 🔔 Сповіщення: увімкнено",
             reply_markup=back_to_main_keyboard(),
             parse_mode="HTML"
         )
@@ -402,12 +416,7 @@ async def show_my_subs_page(callback: CallbackQuery, page: int = 0):
         
         for sub in page_subs:
             company = await company_repo.get_company(sub.edrpou)
-            if company and company.company_name:
-                name = company.company_name
-                if len(name) > 22:
-                    name = name[:20] + "…"
-            else:
-                name = "—"
+            name = company.company_name if company and company.company_name else "—"
             text += f"<code>{sub.edrpou}</code> {name}\n"
         
         await callback.message.edit_text(

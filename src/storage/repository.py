@@ -375,6 +375,15 @@ class UserSubscriptionRepository:
         )
         return [r[0] for r in result.all()]
     
+    async def get_subscription(self, user_id: int, edrpou: str) -> Optional[UserSubscription]:
+        """Get specific subscription"""
+        result = await self.session.execute(
+            select(UserSubscription)
+            .where(UserSubscription.user_id == user_id)
+            .where(UserSubscription.edrpou == edrpou)
+        )
+        return result.scalar_one_or_none()
+    
     async def is_subscribed(self, user_id: int, edrpou: str) -> bool:
         """Check if user is subscribed to company"""
         result = await self.session.execute(
