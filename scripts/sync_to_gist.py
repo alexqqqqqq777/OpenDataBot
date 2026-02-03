@@ -47,17 +47,19 @@ def extract_case_numbers(text: str) -> list:
 
 async def fetch_worksection_tasks() -> list:
     """Fetch all tasks from Worksection."""
-    base_url = f"https://{WORKSECTION_DOMAIN}/api/admin/"
+    # Use v2 API endpoint
+    base_url = f"https://{WORKSECTION_DOMAIN}/api/admin/v2/"
     action = "get_all_tasks"
     params = {"extra": "text"}
     
-    # Build hash query
+    # Build hash query - action first, then sorted params
     hash_parts = [f"action={action}"]
     for key in sorted(params.keys()):
         hash_parts.append(f"{key}={params[key]}")
     hash_query = "&".join(hash_parts)
     hash_value = generate_hash(hash_query, WORKSECTION_API_KEY)
     
+    # URL format: base?action=X&param=Y&hash=Z
     url = f"{base_url}?{hash_query}&hash={hash_value}"
     
     async with httpx.AsyncClient(timeout=60.0) as client:
