@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     WORKSECTION_ACCOUNT: str = Field(default="")
     WORKSECTION_CASE_PATTERN: str = Field(default=r"(\d{3,4}/\d+/\d{2}(?:-[А-Яа-яІіЇїЄєҐґЦц]+)?)")
     
+    # Gist-based Worksection sync (secure mode - no WS API key on server)
+    WORKSECTION_GIST_ID: str = Field(default="")  # If set, use Gist instead of direct API
+    
     # Telegram
     TELEGRAM_BOT_TOKEN: str = Field(default="")
     TELEGRAM_ADMIN_IDS: str = Field(default="")  # comma-separated user IDs

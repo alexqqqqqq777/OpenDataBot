@@ -4,7 +4,8 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.storage.models import (
     MonitoredCompany, OpenDataBotSubscription, WorksectionCase,
-    CourtCase, NotificationSent, SyncState, UserSubscription
+    CourtCase, NotificationSent, SyncState, UserSubscription,
+    UserSettings, CaseSubscription
 )
 import logging
 
@@ -391,6 +392,112 @@ class UserSubscriptionRepository:
             .where(UserSubscription.user_id == user_id)
             .where(UserSubscription.edrpou == edrpou)
             .where(UserSubscription.is_active == True)
+            .limit(1)
+        )
+        return result.scalar_one_or_none() is not None
+
+
+class UserSettingsRepository:
+    """Repository for user settings"""
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def get_settings(self, user_id: int) -> Optional[UserSettings]:
+        """Get user settings"""
+        result = await self.session.execute(
+            select(UserSettings).where(UserSettings.user_id == user_id)
+        )
+        return result.scalar_one_or_none()
+    
+    async def get_or_create(self, user_id: int) -> UserSettings:
+        """Get or create user settings"""
+        settings = await self.get_settings(user_id)
+        if not settings:
+            settings = UserSettings(user_id=user_id)
+            self.session.add(settings)
+            await self.session.commit()
+            await self.session.refresh(settings)
+        return settings
+    
+    async def set_receive_all(self, user_id: int, value: bool) -> UserSettings:
+        """Set receive_all_notifications preference"""
+        settings = await self.get_or_create(user_id)
+        settings.receive_all_notifications = value
+        await self.session.commit()
+        return settings
+    
+    async def get_receive_all(self, user_id: int) -> bool:
+        """Check if user wants to receive all notifications"""
+        settings = await self.get_settings(user_id)
+        return settings.receive_all_notifications if settings else False
+
+
+class CaseSubscriptionRepository:
+    """Repository for case subscriptions"""
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def subscribe(self, user_id: int, case_number: str, case_name: str = None) -> CaseSubscription:
+        """Subscribe user to a specific court case"""
+        existing = await self.session.execute(
+            select(CaseSubscription)
+            .where(CaseSubscription.user_id == user_id)
+            .where(CaseSubscription.case_number == case_number)
+        )
+        sub = existing.scalar_one_or_none()
+        
+        if sub:
+            sub.is_active = True
+            if case_name:
+                sub.case_name = case_name
+        else:
+            sub = CaseSubscription(
+                user_id=user_id, 
+                case_number=case_number, 
+                case_name=case_name,
+                is_active=True
+            )
+            self.session.add(sub)
+        
+        await self.session.commit()
+        return sub
+    
+    async def unsubscribe(self, user_id: int, case_number: str) -> bool:
+        """Unsubscribe user from a case"""
+        result = await self.session.execute(
+            update(CaseSubscription)
+            .where(CaseSubscription.user_id == user_id)
+            .where(CaseSubscription.case_number == case_number)
+            .values(is_active=False)
+        )
+        await self.session.commit()
+        return result.rowcount > 0
+    
+    async def get_user_cases(self, user_id: int) -> List[CaseSubscription]:
+        """Get all active case subscriptions for a user"""
+        result = await self.session.execute(
+            select(CaseSubscription)
+            .where(CaseSubscription.user_id == user_id)
+            .where(CaseSubscription.is_active == True)
+        )
+        return list(result.scalars().all())
+    
+    async def get_users_for_case(self, case_number: str) -> List[int]:
+        """Get all user IDs subscribed to this case number"""
+        result = await self.session.execute(
+            select(CaseSubscription.user_id)
+            .where(CaseSubscription.case_number == case_number)
+            .where(CaseSubscription.is_active == True)
+        )
+        return [r[0] for r in result.all()]
+    
+    async def is_subscribed(self, user_id: int, case_number: str) -> bool:
+        """Check if user is subscribed to a case"""
+        result = await self.session.execute(
+            select(CaseSubscription.id)
+            .where(CaseSubscription.user_id == user_id)
+            .where(CaseSubscription.case_number == case_number)
+            .where(CaseSubscription.is_active == True)
             .limit(1)
         )
         return result.scalar_one_or_none() is not None

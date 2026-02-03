@@ -23,7 +23,9 @@ class TelegramNotifier:
         case_data: Dict[str, Any],
         threat_analysis: Dict[str, Any],
         chat_id: str = None,
-        edrpou_matches: List[str] = None
+        edrpou_matches: List[str] = None,
+        is_new_case: bool = True,  # True if NOT in Worksection (RED ALERT)
+        is_case_subscription: bool = False  # True if from case subscription
     ) -> Optional[str]:
         """
         Send notification about new court case.
@@ -54,7 +56,10 @@ class TelegramNotifier:
                 return None
             
             # Format message
-            message = self._format_case_message(case_data, threat_analysis, edrpou_matches)
+            message = self._format_case_message(
+                case_data, threat_analysis, edrpou_matches, 
+                is_new_case, is_case_subscription
+            )
             
             # Send message
             try:
@@ -88,7 +93,9 @@ class TelegramNotifier:
         self,
         case_data: Dict[str, Any],
         threat_analysis: Dict[str, Any],
-        edrpou_matches: List[str] = None
+        edrpou_matches: List[str] = None,
+        is_new_case: bool = True,
+        is_case_subscription: bool = False
     ) -> str:
         """Format case data into Telegram message - industrial quality"""
         from datetime import datetime
@@ -96,6 +103,16 @@ class TelegramNotifier:
         threat_level = threat_analysis.get('threat_level', 'MEDIUM')
         is_criminal = threat_analysis.get('is_criminal', False)
         case_category = threat_analysis.get('case_category', 'civil')
+        
+        # RED ALERT prefix for new cases not in Worksection
+        red_alert = ""
+        if is_new_case:
+            red_alert = "🔴🔴🔴 <b>НОВА СПРАВА!</b> 🔴🔴🔴\n<i>⚡ Справи НЕМАЄ в Worksection!</i>\n\n"
+        
+        # Case subscription prefix
+        case_sub_prefix = ""
+        if is_case_subscription:
+            case_sub_prefix = "📌 <b>МОНІТОРИНГ СПРАВИ</b>\n\n"
         
         # Header based on threat level
         if threat_level == "CRITICAL":
@@ -106,6 +123,9 @@ class TelegramNotifier:
             header = "ℹ️ <b>Інформаційно: Компанія-позивач</b>"
         else:
             header = "📋 <b>Нова судова справа</b>"
+        
+        # Combine prefixes
+        header = red_alert + case_sub_prefix + header
         
         # Case info
         case_number = case_data.get('normalized_case_number') or case_data.get('case_number', 'N/A')

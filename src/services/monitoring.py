@@ -4,7 +4,8 @@ from src.clients import OpenDataBotClient
 from src.storage import (
     AsyncSessionLocal, CompanyRepository, SubscriptionRepository,
     WorksectionCaseRepository, NotificationRepository, SyncStateRepository,
-    CourtCaseRepository, UserSubscriptionRepository
+    CourtCaseRepository, UserSubscriptionRepository, UserSettingsRepository,
+    CaseSubscriptionRepository
 )
 from src.services.threat_analyzer import analyze_threat
 from src.services.notifier import TelegramNotifier
@@ -99,10 +100,12 @@ class CourtMonitoringService:
             # Get last processed notification ID
             last_id = await sync_repo.get_state('opendatabot_last_notification_id')
             
-            # Get active EDRPOUs
+            # Get active EDRPOUs (normalize by stripping leading zeros)
             companies = await company_repo.get_active_companies()
-            edrpou_set = {c.edrpou for c in companies}
-            edrpou_names = {c.edrpou: c.company_name for c in companies}
+            edrpou_set = {c.edrpou.lstrip('0') for c in companies}
+            edrpou_names = {c.edrpou.lstrip('0'): c.company_name for c in companies}
+            # Also keep original for lookup
+            edrpou_original = {c.edrpou.lstrip('0'): c.edrpou for c in companies}
             
             if not edrpou_set:
                 logger.info("No active companies to monitor")
@@ -123,7 +126,8 @@ class CourtMonitoringService:
             
             for event in items:
                 notification_id = str(event.get('notificationId', ''))
-                event_edrpou = str(event.get('code', ''))
+                event_edrpou_raw = str(event.get('code', ''))
+                event_edrpou = event_edrpou_raw.lstrip('0')  # Normalize EDRPOU
                 event_type = event.get('type', '')
                 
                 # Skip if not court event
@@ -132,7 +136,7 @@ class CourtMonitoringService:
                 
                 # Skip if not our company
                 if event_edrpou not in edrpou_set:
-                    logger.debug(f"Event for {event_edrpou} - not in monitoring list, skipping")
+                    logger.debug(f"Event for {event_edrpou_raw} (normalized: {event_edrpou}) - not in monitoring list, skipping")
                     continue
                 
                 # Track max ID
@@ -155,20 +159,10 @@ class CourtMonitoringService:
                         continue
                     
                     # Check if in Worksection (already known)
-                    if normalized in ws_case_numbers:
-                        logger.debug(f"Case {normalized} exists in Worksection, skipping")
-                        continue
+                    is_in_worksection = normalized in ws_case_numbers
                     
-                    # Generate case key for deduplication
-                    case_key = generate_case_key(
-                        case_number=normalized,
-                        court_code=event_edrpou
-                    )
-                    
-                    # Check if already notified
-                    if await notification_repo.notification_sent(case_key):
-                        logger.debug(f"Already notified about {case_key}")
-                        continue
+                    # Get original EDRPOU for DB lookups
+                    original_edrpou = edrpou_original.get(event_edrpou, event_edrpou)
                     
                     # Build case data
                     case_data = {
@@ -179,7 +173,7 @@ class CourtMonitoringService:
                         'document_type': ci.get('type', ''),
                         'date_opened': ci.get('date'),
                         'source_link': ci.get('documentLink', ''),
-                        'edrpou_matches': [event_edrpou],
+                        'edrpou_matches': [original_edrpou],
                         'company_name': edrpou_names.get(event_edrpou, ''),
                     }
                     
@@ -197,36 +191,59 @@ class CourtMonitoringService:
                         'court_name': ci.get('courtName'),
                         'case_type_name': ci.get('form'),
                         'source_link': ci.get('documentLink'),
-                        'edrpou_matches': [event_edrpou],
+                        'edrpou_matches': [original_edrpou],
                         'status': 'new',
                         'threat_level': threat_analysis.get('threat_level', 'MEDIUM'),
+                        'is_in_worksection': is_in_worksection,
                     })
                     
-                    # Send notification to all subscribed users
+                    # Get subscribed users and their settings
                     user_sub_repo = UserSubscriptionRepository(session)
-                    subscribed_users = await user_sub_repo.get_users_for_edrpou(event_edrpou)
+                    settings_repo = UserSettingsRepository(session)
+                    case_sub_repo = CaseSubscriptionRepository(session)
                     
-                    if subscribed_users:
-                        for user_id in subscribed_users:
+                    subscribed_users = await user_sub_repo.get_users_for_edrpou(original_edrpou)
+                    
+                    # Also get users subscribed to this specific case number
+                    case_subscribed_users = await case_sub_repo.get_users_for_case(normalized)
+                    
+                    # Combine and deduplicate users
+                    all_users = set(subscribed_users) | set(case_subscribed_users)
+                    
+                    if all_users:
+                        for user_id in all_users:
+                            # Check user settings
+                            receive_all = await settings_repo.get_receive_all(user_id)
+                            is_case_sub = user_id in case_subscribed_users
+                            
+                            # Skip if in Worksection AND user doesn't want all notifications AND not case subscription
+                            if is_in_worksection and not receive_all and not is_case_sub:
+                                logger.debug(f"Skipping {normalized} for user {user_id} - in WS, filter enabled")
+                                continue
+                            
                             msg_id = await self.notifier.send_case_notification(
                                 case_data=case_data,
                                 threat_analysis=threat_analysis,
-                                edrpou_matches=[event_edrpou],
-                                chat_id=str(user_id)
+                                edrpou_matches=[original_edrpou],
+                                chat_id=str(user_id),
+                                is_new_case=not is_in_worksection,
+                                is_case_subscription=is_case_sub
                             )
                             if msg_id:
                                 notifications_sent += 1
-                        logger.info(f"Sent {len(subscribed_users)} notifications for case {normalized}")
+                        logger.info(f"Processed case {normalized} for {len(all_users)} users (in_ws={is_in_worksection})")
                     else:
-                        # Fallback to admin if no user subscriptions
-                        msg_id = await self.notifier.send_case_notification(
-                            case_data=case_data,
-                            threat_analysis=threat_analysis,
-                            edrpou_matches=[event_edrpou]
-                        )
-                        if msg_id:
-                            notifications_sent += 1
-                            logger.info(f"Sent admin notification for case {normalized}")
+                        # Fallback to admin if no user subscriptions (only if not in Worksection)
+                        if not is_in_worksection:
+                            msg_id = await self.notifier.send_case_notification(
+                                case_data=case_data,
+                                threat_analysis=threat_analysis,
+                                edrpou_matches=[original_edrpou],
+                                is_new_case=True
+                            )
+                            if msg_id:
+                                notifications_sent += 1
+                                logger.info(f"Sent admin notification for case {normalized}")
             
             # Update last processed ID
             if max_id and max_id != last_id:

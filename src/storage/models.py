@@ -153,3 +153,31 @@ class UserSubscription(Base):
     __table_args__ = (
         UniqueConstraint('user_id', 'edrpou', name='uq_user_edrpou'),
     )
+
+
+class UserSettings(Base):
+    """User settings for notification preferences"""
+    __tablename__ = "user_settings"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=False, index=True)
+    # False = filter by Worksection (default), True = receive ALL notifications
+    receive_all_notifications: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class CaseSubscription(Base):
+    """User subscriptions to specific court cases (by case number)"""
+    __tablename__ = "case_subscriptions"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    case_number: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    case_name: Mapped[Optional[str]] = mapped_column(String(255))  # Optional description
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    __table_args__ = (
+        UniqueConstraint('user_id', 'case_number', name='uq_user_case'),
+    )

@@ -1,10 +1,16 @@
 import httpx
+import json
 from typing import List, Dict, Any, Optional
 from src.config import settings
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 import logging
+from datetime import datetime
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+# Dedicated logger for OpenDataBot API responses
+odb_history_logger = logging.getLogger('opendatabot.history')
 
 
 class OpenDataBotError(Exception):
@@ -150,7 +156,27 @@ class OpenDataBotClient:
             params['date_end'] = date_end
         
         data = await self._request('GET', '/history', params=params)
-        return data.get('data', {})
+        
+        # Full logging of history response
+        history_data = data.get('data', {})
+        items = history_data.get('items', [])
+        
+        odb_history_logger.info(f"=== OpenDataBot History Response ===")
+        odb_history_logger.info(f"Timestamp: {datetime.now().isoformat()}")
+        odb_history_logger.info(f"Params: from_id={from_id}, type={notification_type}, limit={limit}")
+        odb_history_logger.info(f"Total items received: {len(items)}")
+        
+        for idx, item in enumerate(items):
+            odb_history_logger.info(
+                f"[{idx+1}/{len(items)}] notificationId={item.get('notificationId')} | "
+                f"type={item.get('type')} | code={item.get('code')} | date={item.get('date')}"
+            )
+            # Log full item as JSON for detailed analysis
+            odb_history_logger.debug(f"Full item: {json.dumps(item, ensure_ascii=False, default=str)}")
+        
+        odb_history_logger.info(f"=== End History Response ===")
+        
+        return history_data
     
     # === Court Status ===
     

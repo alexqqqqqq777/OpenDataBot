@@ -1,5 +1,7 @@
 import asyncio
 import logging
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -12,11 +14,43 @@ from src.bot import router
 from src.services import run_monitoring_cycle, sync_worksection_cases
 
 # Configure logging
+LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format=LOG_FORMAT
 )
 logger = logging.getLogger(__name__)
+
+# Setup dedicated file logger for OpenDataBot history
+def setup_opendatabot_logging():
+    """Setup file logging for OpenDataBot API responses"""
+    log_dir = Path(__file__).parent.parent / 'logs'
+    log_dir.mkdir(exist_ok=True)
+    
+    odb_logger = logging.getLogger('opendatabot.history')
+    odb_logger.setLevel(logging.DEBUG)
+    
+    # File handler with rotation (10MB max, keep 5 backups)
+    file_handler = RotatingFileHandler(
+        log_dir / 'opendatabot_history.log',
+        maxBytes=10*1024*1024,  # 10MB
+        backupCount=5,
+        encoding='utf-8'
+    )
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+    
+    # Also log to console at INFO level
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+    
+    odb_logger.addHandler(file_handler)
+    odb_logger.addHandler(console_handler)
+    
+    logger.info(f"OpenDataBot history logging configured: {log_dir / 'opendatabot_history.log'}")
+
+setup_opendatabot_logging()
 
 
 async def scheduled_monitoring(bot: Bot):

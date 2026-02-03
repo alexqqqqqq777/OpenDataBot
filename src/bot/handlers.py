@@ -5,7 +5,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from src.storage import (
     AsyncSessionLocal, CompanyRepository, NotificationRepository,
-    WorksectionCaseRepository, CourtCaseRepository, UserSubscriptionRepository
+    WorksectionCaseRepository, CourtCaseRepository, UserSubscriptionRepository,
+    UserSettingsRepository, CaseSubscriptionRepository
 )
 from src.utils import validate_edrpou, format_edrpou
 from src.clients import OpenDataBotClient, WorksectionClient
@@ -14,8 +15,9 @@ from src.bot.keyboards import (
     stats_keyboard, settings_keyboard, sync_keyboard,
     company_actions_keyboard, confirm_delete_keyboard, back_to_main_keyboard,
     cancel_keyboard, pagination_keyboard, threat_level_filter_keyboard,
-    my_subs_keyboard
+    my_subs_keyboard, my_cases_keyboard
 )
+from src.utils import normalize_case_number
 from datetime import datetime
 import logging
 
@@ -33,6 +35,11 @@ class AddCompanyStates(StatesGroup):
 
 class SearchStates(StatesGroup):
     waiting_for_query = State()
+
+
+class AddCaseStates(StatesGroup):
+    waiting_for_case_number = State()
+    waiting_for_case_name = State()
 
 
 # === Start & Main Menu ===
@@ -707,13 +714,44 @@ async def callback_general_stats(event: Message | CallbackQuery):
 @router.callback_query(F.data == "menu:settings")
 async def callback_settings_menu(callback: CallbackQuery):
     """Меню налаштувань"""
+    async with AsyncSessionLocal() as session:
+        settings_repo = UserSettingsRepository(session)
+        receive_all = await settings_repo.get_receive_all(callback.from_user.id)
+    
+    mode_text = "✅ <b>Всі сповіщення</b>" if receive_all else "🔕 <b>Фільтр Worksection</b>"
+    
     await callback.message.edit_text(
-        "⚙️ <b>Налаштування</b>\n\n"
-        "Керуйте параметрами системи.",
-        reply_markup=settings_keyboard(),
+        f"⚙️ <b>Налаштування</b>\n\n"
+        f"Поточний режим: {mode_text}\n\n"
+        f"<i>• Всі сповіщення — отримувати ВСІ справи без фільтрації\n"
+        f"• Фільтр Worksection — тільки НОВІ справи (відсутні в Worksection)</i>",
+        reply_markup=settings_keyboard(receive_all),
         parse_mode="HTML"
     )
     await callback.answer()
+
+
+@router.callback_query(F.data.startswith("settings:toggle_all:"))
+async def callback_toggle_all_notifications(callback: CallbackQuery):
+    """Переключення режиму отримання всіх сповіщень"""
+    action = callback.data.split(":")[-1]  # "on" or "off"
+    new_value = action == "on"
+    
+    async with AsyncSessionLocal() as session:
+        settings_repo = UserSettingsRepository(session)
+        await settings_repo.set_receive_all(callback.from_user.id, new_value)
+    
+    if new_value:
+        text = "✅ <b>Режим змінено!</b>\n\nТепер ви отримуватимете <b>ВСІ</b> сповіщення про судові справи, включно з тими, що вже є в Worksection."
+    else:
+        text = "🔕 <b>Режим змінено!</b>\n\nТепер ви отримуватимете сповіщення тільки про <b>НОВІ</b> справи, яких немає в Worksection."
+    
+    await callback.message.edit_text(
+        text,
+        reply_markup=settings_keyboard(new_value),
+        parse_mode="HTML"
+    )
+    await callback.answer("Налаштування збережено!")
 
 
 @router.callback_query(F.data == "settings:api_status")
@@ -787,15 +825,17 @@ async def callback_sync_menu(callback: CallbackQuery):
 @router.callback_query(F.data == "sync:worksection")
 async def callback_sync_worksection(callback: CallbackQuery):
     """Синхронізація Worksection"""
-    from src.services.worksection_sync import sync_worksection_cases
+    from src.services.worksection_sync import sync_worksection_cases, is_gist_mode
     
-    await callback.message.edit_text("🔄 Синхронізую Worksection...", parse_mode="HTML")
+    mode = "Gist 🔒" if is_gist_mode() else "API"
+    await callback.message.edit_text(f"🔄 Синхронізую Worksection ({mode})...", parse_mode="HTML")
     
     try:
         count = await sync_worksection_cases()
+        mode_info = "\n🔒 <i>Режим: Gist (безпечний)</i>" if is_gist_mode() else ""
         await callback.message.edit_text(
             f"✅ <b>Worksection синхронізовано!</b>\n\n"
-            f"📁 Оброблено справ: {count}",
+            f"📁 Оброблено справ: {count}{mode_info}",
             reply_markup=sync_keyboard(),
             parse_mode="HTML"
         )
@@ -926,3 +966,197 @@ async def cmd_list(message: Message):
             text += f"{status} <code>{c.edrpou}</code> — {c.company_name or 'Без назви'}\n"
         
         await message.answer(text, reply_markup=main_menu_keyboard(), parse_mode="HTML")
+
+
+# === Case Subscriptions (Моніторинг конкретних справ) ===
+
+@router.callback_query(F.data == "cases:my_monitored")
+async def callback_my_monitored_cases(callback: CallbackQuery):
+    """Список справ на моніторингу"""
+    async with AsyncSessionLocal() as session:
+        case_repo = CaseSubscriptionRepository(session)
+        cases = await case_repo.get_user_cases(callback.from_user.id)
+    
+    if not cases:
+        await callback.message.edit_text(
+            "📌 <b>Мої справи (моніторинг)</b>\n\n"
+            "У вас немає справ на моніторингу.\n\n"
+            "<i>Додайте номер справи, щоб отримувати сповіщення про будь-які зміни по ній.</i>",
+            reply_markup=my_cases_keyboard(),
+            parse_mode="HTML"
+        )
+        await callback.answer()
+        return
+    
+    page_cases = cases[:10]
+    total_pages = (len(cases) + 9) // 10
+    
+    text = "📌 <b>Мої справи (моніторинг)</b>\n\n"
+    text += "<i>Натисніть ❌ щоб видалити справу з моніторингу:</i>\n\n"
+    for i, c in enumerate(page_cases, 1):
+        name = f" — {c.case_name}" if c.case_name else ""
+        text += f"{i}. <code>{c.case_number}</code>{name}\n"
+    
+    if len(cases) > 10:
+        text += f"\n<i>...та ще {len(cases) - 10} справ</i>"
+    
+    await callback.message.edit_text(
+        text,
+        reply_markup=my_cases_keyboard(0, total_pages, page_cases),
+        parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "mycases:info")
+async def callback_my_cases_info(callback: CallbackQuery):
+    """Інформація про пагінацію (ігнорування)"""
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("mycases:page:"))
+async def callback_my_cases_page(callback: CallbackQuery):
+    """Пагінація списку справ на моніторингу"""
+    page = int(callback.data.split(":")[-1])
+    
+    async with AsyncSessionLocal() as session:
+        case_repo = CaseSubscriptionRepository(session)
+        cases = await case_repo.get_user_cases(callback.from_user.id)
+    
+    if not cases:
+        await callback.answer("Список порожній")
+        return
+    
+    start_idx = page * 10
+    page_cases = cases[start_idx:start_idx + 10]
+    total_pages = (len(cases) + 9) // 10
+    
+    text = "📌 <b>Мої справи (моніторинг)</b>\n\n"
+    text += "<i>Натисніть ❌ щоб видалити справу з моніторингу:</i>\n\n"
+    for i, c in enumerate(page_cases, start_idx + 1):
+        name = f" — {c.case_name}" if c.case_name else ""
+        text += f"{i}. <code>{c.case_number}</code>{name}\n"
+    
+    await callback.message.edit_text(
+        text,
+        reply_markup=my_cases_keyboard(page, total_pages, page_cases),
+        parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "cases:add_case")
+async def callback_add_case_start(callback: CallbackQuery, state: FSMContext):
+    """Початок додавання справи на моніторинг"""
+    await state.set_state(AddCaseStates.waiting_for_case_number)
+    await callback.message.edit_text(
+        "➕ <b>Додавання справи на моніторинг</b>\n\n"
+        "Введіть номер судової справи:\n\n"
+        "<i>Приклад: 922/1234/25 або 910/12345/24</i>",
+        reply_markup=cancel_keyboard(),
+        parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@router.message(AddCaseStates.waiting_for_case_number)
+async def process_case_number(message: Message, state: FSMContext):
+    """Обробка номера справи"""
+    raw_number = message.text.strip()
+    normalized = normalize_case_number(raw_number)
+    
+    if not normalized:
+        await message.answer(
+            "❌ <b>Некоректний номер справи</b>\n\n"
+            "Номер має бути у форматі: XXX/XXXX/XX\n"
+            "Спробуйте ще раз:",
+            reply_markup=cancel_keyboard(),
+            parse_mode="HTML"
+        )
+        return
+    
+    async with AsyncSessionLocal() as session:
+        case_repo = CaseSubscriptionRepository(session)
+        
+        # Check if already subscribed
+        if await case_repo.is_subscribed(message.from_user.id, normalized):
+            await state.clear()
+            await message.answer(
+                f"ℹ️ Ви вже відстежуєте справу <code>{normalized}</code>",
+                reply_markup=my_cases_keyboard(),
+                parse_mode="HTML"
+            )
+            return
+    
+    await state.update_data(case_number=normalized)
+    await state.set_state(AddCaseStates.waiting_for_case_name)
+    await message.answer(
+        f"✅ Номер справи: <code>{normalized}</code>\n\n"
+        "Введіть назву/опис справи (або надішліть '-' щоб пропустити):",
+        reply_markup=cancel_keyboard(),
+        parse_mode="HTML"
+    )
+
+
+@router.message(AddCaseStates.waiting_for_case_name)
+async def process_case_name(message: Message, state: FSMContext):
+    """Збереження справи на моніторинг"""
+    data = await state.get_data()
+    case_number = data.get('case_number')
+    case_name = message.text.strip() if message.text.strip() != '-' else None
+    
+    async with AsyncSessionLocal() as session:
+        case_repo = CaseSubscriptionRepository(session)
+        await case_repo.subscribe(message.from_user.id, case_number, case_name)
+    
+    await state.clear()
+    
+    name_text = f"\n├ Опис: {case_name}" if case_name else ""
+    await message.answer(
+        f"✅ <b>Справу додано на моніторинг!</b>\n\n"
+        f"├ Номер: <code>{case_number}</code>{name_text}\n"
+        f"└ 🔔 Сповіщення: увімкнено\n\n"
+        f"<i>Ви отримаєте сповіщення про будь-які зміни по цій справі.</i>",
+        reply_markup=my_cases_keyboard(),
+        parse_mode="HTML"
+    )
+    logger.info(f"User {message.from_user.id} subscribed to case {case_number}")
+
+
+@router.callback_query(F.data.startswith("case:unsub:"))
+async def callback_unsubscribe_case(callback: CallbackQuery):
+    """Відписка від справи"""
+    case_number = callback.data.split(":", 2)[-1]
+    
+    async with AsyncSessionLocal() as session:
+        case_repo = CaseSubscriptionRepository(session)
+        await case_repo.unsubscribe(callback.from_user.id, case_number)
+    
+    await callback.answer(f"Справу {case_number} видалено з моніторингу")
+    
+    # Refresh list
+    async with AsyncSessionLocal() as session:
+        case_repo = CaseSubscriptionRepository(session)
+        cases = await case_repo.get_user_cases(callback.from_user.id)
+    
+    if not cases:
+        await callback.message.edit_text(
+            "📌 <b>Мої справи (моніторинг)</b>\n\n"
+            "У вас немає справ на моніторингу.",
+            reply_markup=my_cases_keyboard(),
+            parse_mode="HTML"
+        )
+    else:
+        page_cases = cases[:10]
+        total_pages = (len(cases) + 9) // 10
+        text = "📌 <b>Мої справи (моніторинг)</b>\n\n"
+        text += "<i>Натисніть ❌ щоб видалити справу з моніторингу:</i>\n\n"
+        for i, c in enumerate(page_cases, 1):
+            name = f" — {c.case_name}" if c.case_name else ""
+            text += f"{i}. <code>{c.case_number}</code>{name}\n"
+        
+        await callback.message.edit_text(
+            text, 
+            reply_markup=my_cases_keyboard(0, total_pages, page_cases), 
+            parse_mode="HTML"
+        )

@@ -74,8 +74,47 @@ def cases_menu_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="📋 Всі справи", callback_data="cases:all")
     )
     builder.row(
+        InlineKeyboardButton(text="📌 Мої справи (моніторинг)", callback_data="cases:my_monitored")
+    )
+    builder.row(
+        InlineKeyboardButton(text="➕ Додати справу", callback_data="cases:add_case")
+    )
+    builder.row(
         InlineKeyboardButton(text="🔙 Головне меню", callback_data="menu:main")
     )
+    
+    return builder.as_markup()
+
+
+def my_cases_keyboard(page: int = 0, total_pages: int = 1, cases: list = None) -> InlineKeyboardMarkup:
+    """Клавіатура для списку моніторингу справ з кнопками видалення"""
+    builder = InlineKeyboardBuilder()
+    
+    # Кнопки видалення для кожної справи на сторінці
+    if cases:
+        for c in cases:
+            short_num = c.case_number[-12:] if len(c.case_number) > 12 else c.case_number
+            builder.row(
+                InlineKeyboardButton(
+                    text=f"❌ {short_num}", 
+                    callback_data=f"case:unsub:{c.case_number}"
+                )
+            )
+    
+    # Пагінація
+    nav_buttons = []
+    if page > 0:
+        nav_buttons.append(InlineKeyboardButton(text="◀️", callback_data=f"mycases:page:{page-1}"))
+    if total_pages > 1:
+        nav_buttons.append(InlineKeyboardButton(text=f"{page+1}/{total_pages}", callback_data="mycases:info"))
+    if page < total_pages - 1:
+        nav_buttons.append(InlineKeyboardButton(text="▶️", callback_data=f"mycases:page:{page+1}"))
+    
+    if nav_buttons:
+        builder.row(*nav_buttons)
+    
+    builder.row(InlineKeyboardButton(text="➕ Додати справу", callback_data="cases:add_case"))
+    builder.row(InlineKeyboardButton(text="🔙 Меню справ", callback_data="menu:cases"))
     
     return builder.as_markup()
 
@@ -88,16 +127,27 @@ def stats_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="📈 Загальна статистика", callback_data="stats:general")
     )
     builder.row(
-        InlineKeyboardButton(text=" Головне меню", callback_data="menu:main")
+        InlineKeyboardButton(text="🔙 Головне меню", callback_data="menu:main")
     )
     
     return builder.as_markup()
 
 
-def settings_keyboard() -> InlineKeyboardMarkup:
+def settings_keyboard(receive_all: bool = False) -> InlineKeyboardMarkup:
     """Меню налаштувань"""
     builder = InlineKeyboardBuilder()
     
+    # Toggle for receive all notifications
+    if receive_all:
+        toggle_text = "🔔 Всі сповіщення: ✅ УВІМК"
+        toggle_data = "settings:toggle_all:off"
+    else:
+        toggle_text = "🔕 Всі сповіщення: ❌ ВИМК"
+        toggle_data = "settings:toggle_all:on"
+    
+    builder.row(
+        InlineKeyboardButton(text=toggle_text, callback_data=toggle_data)
+    )
     builder.row(
         InlineKeyboardButton(text="⏰ Розклад", callback_data="settings:schedule"),
         InlineKeyboardButton(text="🔑 API статус", callback_data="settings:api_status")
