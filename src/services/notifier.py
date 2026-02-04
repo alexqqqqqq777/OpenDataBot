@@ -122,7 +122,11 @@ class TelegramNotifier:
         elif threat_level == "LOW":
             header = "ℹ️ <b>Інформаційно: Компанія-позивач</b>"
         else:
-            header = "📋 <b>Нова судова справа</b>"
+            # Different header for cases already in Worksection
+            if is_new_case:
+                header = "📋 <b>Нова судова справа</b>"
+            else:
+                header = "📄 <b>Оновлення по справі</b>"
         
         # Combine prefixes
         header = red_alert + case_sub_prefix + header
