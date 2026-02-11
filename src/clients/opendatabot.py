@@ -6,6 +6,9 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 import logging
 from datetime import datetime
 from pathlib import Path
+from sqlalchemy import select
+from src.storage.database import get_db
+from src.storage.models import ApiResponseCache
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +31,7 @@ class OpenDataBotClient:
     
     def __init__(self):
         self.api_key = settings.OPENDATABOT_API_KEY
+        self.full_api_key = getattr(settings, 'OPENDATABOT_FULL_API_KEY', self.api_key)
         self.base_url = settings.OPENDATABOT_BASE_URL
         self.timeout = 30.0
     
@@ -228,3 +232,279 @@ class OpenDataBotClient:
         except Exception as e:
             logger.error(f"OpenDataBot connection failed: {e}")
             return False
+    
+    # === Full Company/Person Check (uses separate API key) ===
+    
+    async def _get_from_cache(self, endpoint: str, query_key: str) -> Optional[tuple]:
+        """Get cached API response from database. Returns (data, cached_at) or None"""
+        async with get_db() as session:
+            result = await session.execute(
+                select(ApiResponseCache).where(
+                    ApiResponseCache.endpoint == endpoint,
+                    ApiResponseCache.query_key == query_key
+                )
+            )
+            cached = result.scalar_one_or_none()
+            
+            if cached:
+                # Increment hit count
+                cached.hit_count += 1
+                await session.commit()
+                logger.info(f"Cache HIT for {endpoint}/{query_key} (hits: {cached.hit_count})")
+                return (cached.response_data, cached.updated_at)
+            
+            return None
+    
+    async def _delete_from_cache(self, endpoint: str, query_key: str):
+        """Delete cached entry to force refresh"""
+        async with get_db() as session:
+            result = await session.execute(
+                select(ApiResponseCache).where(
+                    ApiResponseCache.endpoint == endpoint,
+                    ApiResponseCache.query_key == query_key
+                )
+            )
+            cached = result.scalar_one_or_none()
+            if cached:
+                await session.delete(cached)
+                await session.commit()
+                logger.info(f"Cache DELETED for {endpoint}/{query_key}")
+    
+    async def _save_to_cache(self, endpoint: str, query_key: str, response_data: Dict):
+        """Save API response to cache in database"""
+        async with get_db() as session:
+            # Check if exists (upsert)
+            result = await session.execute(
+                select(ApiResponseCache).where(
+                    ApiResponseCache.endpoint == endpoint,
+                    ApiResponseCache.query_key == query_key
+                )
+            )
+            existing = result.scalar_one_or_none()
+            
+            if existing:
+                existing.response_data = response_data
+                existing.updated_at = datetime.utcnow()
+            else:
+                cache_entry = ApiResponseCache(
+                    endpoint=endpoint,
+                    query_key=query_key,
+                    response_data=response_data
+                )
+                session.add(cache_entry)
+            
+            await session.commit()
+            logger.info(f"Cache SAVED for {endpoint}/{query_key}")
+    
+    async def _request_full(self, endpoint: str, params: Dict[str, Any] = None) -> Dict:
+        """Make request using FULL API key for company/person checks"""
+        full_api_key = settings.OPENDATABOT_FULL_API_KEY
+        if not full_api_key:
+            raise OpenDataBotError("OPENDATABOT_FULL_API_KEY not configured")
+        
+        params = params or {}
+        params['apiKey'] = full_api_key
+        
+        url = f"{self.base_url}/{endpoint.lstrip('/')}"
+        
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.get(url, params=params)
+            
+            if response.status_code == 429:
+                raise RateLimitError("Rate limit exceeded")
+            if response.status_code == 404:
+                return {"status": "error", "message": "Not found"}
+            if response.status_code == 402:
+                raise OpenDataBotError("Payment required - API limit reached")
+            
+            response.raise_for_status()
+            return response.json()
+    
+    async def get_full_company(self, code: str, force_refresh: bool = False) -> Optional[Dict]:
+        """
+        Get full company information by EDRPOU code.
+        Includes: registry data, factors (tax, court, sanctions), beneficiaries, etc.
+        Uses cache to reduce API costs.
+        Returns dict with 'data' and 'cached_at' (None if fresh from API).
+        """
+        endpoint = 'full-company'
+        
+        # Force refresh - delete cache first
+        if force_refresh:
+            await self._delete_from_cache(endpoint, code)
+        else:
+            # Check cache first
+            cached = await self._get_from_cache(endpoint, code)
+            if cached:
+                data, cached_at = cached
+                return {'data': data, 'cached_at': cached_at}
+        
+        try:
+            data = await self._request_full(f'/full-company/{code}')
+            if data.get('status') == 'ok':
+                result = data.get('data')
+                # Save to cache
+                await self._save_to_cache(endpoint, code, result)
+                return {'data': result, 'cached_at': None}
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get full company {code}: {e}")
+            raise
+    
+    async def get_fop(self, code: str, force_refresh: bool = False) -> Optional[Dict]:
+        """
+        Get FOP (individual entrepreneur) info by IPN code.
+        Uses cache to reduce API costs.
+        """
+        endpoint = 'fop'
+        
+        if force_refresh:
+            await self._delete_from_cache(endpoint, code)
+        else:
+            cached = await self._get_from_cache(endpoint, code)
+            if cached:
+                data, cached_at = cached
+                return {'data': data, 'cached_at': cached_at}
+        
+        try:
+            data = await self._request_full(f'/fop/{code}')
+            if data.get('status') == 'ok':
+                result = data.get('data')
+                await self._save_to_cache(endpoint, code, result)
+                return {'data': result, 'cached_at': None}
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get FOP {code}: {e}")
+            raise
+    
+    async def get_person(self, pib: str, force_refresh: bool = False) -> Optional[Dict]:
+        """
+        Get person information by full name (PIB).
+        Uses cache to reduce API costs.
+        """
+        endpoint = 'person'
+        query_key = pib.strip().upper()
+        
+        if force_refresh:
+            await self._delete_from_cache(endpoint, query_key)
+        else:
+            cached = await self._get_from_cache(endpoint, query_key)
+            if cached:
+                data, cached_at = cached
+                return {'data': data, 'cached_at': cached_at}
+        
+        try:
+            data = await self._request_full('/person', params={'pib': pib})
+            if data.get('status') == 'ok':
+                result = data.get('data')
+                await self._save_to_cache(endpoint, query_key, result)
+                return {'data': result, 'cached_at': None}
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get person {pib}: {e}")
+            raise
+    
+    async def get_person_by_inn(
+        self, 
+        code: str, 
+        force_refresh: bool = False,
+        user_name: str = None,
+        user_code: str = None
+    ) -> Optional[Dict]:
+        """
+        Get person information by INN (individual tax number).
+        Uses cache to reduce API costs.
+        
+        If user_name and user_code are provided, includes realty (DRORM) data.
+        """
+        endpoint = 'person-by-ipn'
+        # Include auth info in cache key if provided
+        cache_key = f"{code}:{user_code}" if user_code else code
+        
+        if force_refresh:
+            await self._delete_from_cache(endpoint, cache_key)
+        else:
+            cached = await self._get_from_cache(endpoint, cache_key)
+            if cached:
+                data, cached_at = cached
+                return {'data': data, 'cached_at': cached_at}
+        
+        try:
+            # Build params with optional authorization for realty
+            # Full scope includes all available registries
+            params = {}
+            if user_name and user_code:
+                params['scope'] = 'fop,realty,bankruptcy,penalty,sanction,rnboSanction,courtAssignments,wantedMvs,declarations,corruptors,lustrated,taxDebts,enforcementProceedings,asvp,erb'
+                params['userName'] = user_name
+                params['userCode'] = user_code
+            
+            data = await self._request_full(f'/person-by-ipn/{code}', params=params if params else None)
+            if data.get('status') == 'ok':
+                result = data.get('data')
+                await self._save_to_cache(endpoint, cache_key, result)
+                return {'data': result, 'cached_at': None}
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get person by INN {code}: {e}")
+            raise
+    
+    async def get_passport(self, passport: str, force_refresh: bool = False) -> Optional[Dict]:
+        """
+        Check passport validity (if it's in the invalid passports database).
+        Uses v2 API endpoint.
+        """
+        endpoint = 'passport'
+        
+        if force_refresh:
+            await self._delete_from_cache(endpoint, passport)
+        else:
+            cached = await self._get_from_cache(endpoint, passport)
+            if cached:
+                data, cached_at = cached
+                return {'data': data, 'cached_at': cached_at}
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(
+                    f"{self.base_url.replace('/v3', '/v2')}/passport",
+                    params={'apiKey': self.full_api_key, 'passport': passport}
+                )
+                response.raise_for_status()
+                result = response.json()
+                await self._save_to_cache(endpoint, passport, result)
+                return {'data': result, 'cached_at': None}
+        except Exception as e:
+            logger.error(f"Failed to check passport {passport}: {e}")
+            raise
+
+    async def get_api_statistics(self) -> Optional[Dict]:
+        """
+        Get API usage statistics and limits.
+        Returns dict with limits info for contractor checks.
+        """
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(
+                    f"{self.base_url}/statistics",
+                    params={'apiKey': self.full_api_key}
+                )
+                response.raise_for_status()
+                data = response.json()
+                
+                result = {
+                    'company': data.get('companyName', ''),
+                    'limits': []
+                }
+                
+                for item in data.get('series', []):
+                    result['limits'].append({
+                        'name': item.get('name', ''),
+                        'title': item.get('title', ''),
+                        'used': item.get('used', 0),
+                        'month_limit': item.get('monthLimit', 0),
+                    })
+                
+                return result
+        except Exception as e:
+            logger.error(f"Failed to get API statistics: {e}")
+            return None

@@ -117,7 +117,7 @@ class CourtMonitoringService:
             logger.info(f"Checking history from_id={last_id}, tracking {len(edrpou_set)} companies")
             
             # Fetch history (type=court for court cases)
-            history = await self.odb_client.get_history(limit=100)
+            history = await self.odb_client.get_history(from_id=last_id, limit=100)
             
             items = history.get('items', [])
             logger.info(f"Received {len(items)} history items")
@@ -130,8 +130,8 @@ class CourtMonitoringService:
                 event_edrpou = event_edrpou_raw.lstrip('0')  # Normalize EDRPOU
                 event_type = event.get('type', '')
                 
-                # Skip if not court event
-                if event_type != 'court':
+                # Skip if not court-related event
+                if not event_type or 'court' not in event_type:
                     continue
                 
                 # Skip if not our company
@@ -139,12 +139,21 @@ class CourtMonitoringService:
                     logger.debug(f"Event for {event_edrpou_raw} (normalized: {event_edrpou}) - not in monitoring list, skipping")
                     continue
                 
-                # Track max ID
-                if notification_id and (not max_id or notification_id > max_id):
+                # Track max ID (compare as integers to avoid string comparison bugs)
+                try:
+                    nid_int = int(notification_id) if notification_id else 0
+                    max_int = int(max_id) if max_id else 0
+                    last_int = int(last_id) if last_id else 0
+                except (ValueError, TypeError):
+                    nid_int = 0
+                    max_int = 0
+                    last_int = 0
+                
+                if nid_int > max_int:
                     max_id = notification_id
                 
                 # Skip if already processed
-                if last_id and notification_id <= last_id:
+                if last_int and nid_int <= last_int:
                     continue
                 
                 # Process court items from this event

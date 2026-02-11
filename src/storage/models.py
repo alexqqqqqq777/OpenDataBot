@@ -181,3 +181,33 @@ class CaseSubscription(Base):
     __table_args__ = (
         UniqueConstraint('user_id', 'case_number', name='uq_user_case'),
     )
+
+
+class ApiResponseCache(Base):
+    """Cache for API responses (OpenDataBot + Clarity) to reduce API costs"""
+    __tablename__ = "api_response_cache"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    endpoint: Mapped[str] = mapped_column(String(80), nullable=False)  # full-company, clarity-edr-info, clarity-tax-info, etc.
+    query_key: Mapped[str] = mapped_column(String(100), nullable=False)  # EDRPOU, PIB, INN, EDRPOU:period
+    response_data: Mapped[str] = mapped_column(JSON, nullable=False)  # Full API response
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    hit_count: Mapped[int] = mapped_column(Integer, default=1)  # How many times this cache was used
+    
+    __table_args__ = (
+        UniqueConstraint('endpoint', 'query_key', name='uq_endpoint_query'),
+        Index('ix_cache_endpoint_query', 'endpoint', 'query_key'),
+    )
+
+
+class UserIdentity(Base):
+    """User identity data for API authorization (DRORM/realty requests)"""
+    __tablename__ = "user_identities"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    telegram_user_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=False, index=True)
+    full_name: Mapped[str] = mapped_column(String(255), nullable=False)  # ПІБ
+    inn: Mapped[str] = mapped_column(String(10), nullable=False)  # ІПН
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -1,0 +1,401 @@
+{
+  "is_payee": true,
+  "is_payer": false,
+  "bank_accounts": [
+    {
+      "Account": "26008455070377",
+      "Mfo": "300528",
+      "Updated": "2026-02-06",
+      "BankEdr": null,
+      "BankName": null
+    },
+    {
+      "Account": "26047455002481",
+      "Mfo": "300528",
+      "Updated": "2022-12-12",
+      "BankEdr": null,
+      "BankName": null
+    },
+    {
+      "Account": "26000455035343",
+      "Mfo": "300528",
+      "Updated": "2019-08-29",
+      "BankEdr": null,
+      "BankName": null
+    },
+    {
+      "Account": "26001455004061",
+      "Mfo": "300528",
+      "Updated": "2016-11-11",
+      "BankEdr": null,
+      "BankName": null
+    },
+    {
+      "Account": "26004962509899",
+      "Mfo": "334851",
+      "Updated": "2015-10-28",
+      "BankEdr": null,
+      "BankName": null
+    }
+  ],
+  "by_date": [
+    {
+      "Date": "2015-09",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 500,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2015-10",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 500,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2015-11",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 600,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2015-12",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 450,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2016-01",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 14177505.79,
+      "PayeeCount": 3
+    },
+    {
+      "Date": "2016-02",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 500,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2016-05",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 900,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2016-06",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 500,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2016-11",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 1704102.93,
+      "PayeeCount": 2
+    },
+    {
+      "Date": "2017-01",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 180,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2017-06",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 360,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2017-07",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 1260,
+      "PayeeCount": 3
+    },
+    {
+      "Date": "2017-08",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 510.48,
+      "PayeeCount": 2
+    },
+    {
+      "Date": "2017-09",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 32044905.15,
+      "PayeeCount": 25
+    },
+    {
+      "Date": "2017-11",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 400,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2018-01",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 41108.5,
+      "PayeeCount": 5
+    },
+    {
+      "Date": "2018-03",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 360,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2018-04",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 3258.12,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2018-05",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 540,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2018-06",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 5320625.48,
+      "PayeeCount": 11
+    },
+    {
+      "Date": "2018-07",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 450,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2018-09",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 597575.53,
+      "PayeeCount": 12
+    },
+    {
+      "Date": "2018-10",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 69767.82,
+      "PayeeCount": 2
+    },
+    {
+      "Date": "2018-11",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 2923,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2019-01",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 1519.22,
+      "PayeeCount": 2
+    },
+    {
+      "Date": "2019-03",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 4116059.2,
+      "PayeeCount": 10
+    },
+    {
+      "Date": "2019-04",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 150283.65,
+      "PayeeCount": 9
+    },
+    {
+      "Date": "2019-06",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 2861.84,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2019-08",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 650,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2019-09",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 1310.52,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2020-01",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 554.55,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2020-06",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 1419.7,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2020-11",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 34702.12,
+      "PayeeCount": 2
+    },
+    {
+      "Date": "2021-02",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 27295.59,
+      "PayeeCount": 3
+    },
+    {
+      "Date": "2021-03",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 48014.34,
+      "PayeeCount": 6
+    },
+    {
+      "Date": "2021-04",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 5264.11,
+      "PayeeCount": 2
+    },
+    {
+      "Date": "2021-06",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 7250.64,
+      "PayeeCount": 2
+    },
+    {
+      "Date": "2021-07",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 19303,
+      "PayeeCount": 3
+    },
+    {
+      "Date": "2021-08",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 32573.21,
+      "PayeeCount": 2
+    },
+    {
+      "Date": "2021-11",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 15000,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2021-12",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 153201.49,
+      "PayeeCount": 5
+    },
+    {
+      "Date": "2022-03",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 2639.84,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2022-06",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 35936.78,
+      "PayeeCount": 6
+    },
+    {
+      "Date": "2022-07",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 3737.61,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2022-12",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 15102.05,
+      "PayeeCount": 3
+    },
+    {
+      "Date": "2023-12",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 20100,
+      "PayeeCount": 2
+    },
+    {
+      "Date": "2024-01",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 6700,
+      "PayeeCount": 1
+    },
+    {
+      "Date": "2024-11",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 15204.85,
+      "PayeeCount": 2
+    },
+    {
+      "Date": "2025-11",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 31238.1,
+      "PayeeCount": 4
+    },
+    {
+      "Date": "2026-02",
+      "PayerAmount": 0,
+      "PayerCount": 0,
+      "PayeeAmount": 17043.48,
+      "PayeeCount": 3
+    }
+  ],
+  "stats": {
+    "query_time": 0.03862404823303223,
+    "quota": {
+      "used": 5,
+      "max": 20,
+      "key_used": 5
+    }
+  }
+}

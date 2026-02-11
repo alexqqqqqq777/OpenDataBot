@@ -9,8 +9,13 @@ class Settings(BaseSettings):
     DATABASE_URL: str = Field(default="sqlite:///./court_monitor.db")
     
     # OpenDataBot
-    OPENDATABOT_API_KEY: str = Field(default="")
+    OPENDATABOT_API_KEY: str = Field(default="")  # For subscriptions/monitoring
+    OPENDATABOT_FULL_API_KEY: str = Field(default="")  # For full company/person checks
     OPENDATABOT_BASE_URL: str = Field(default="https://opendatabot.com/api/v3")
+    
+    # Clarity Project
+    CLARITY_API_KEY: str = Field(default="")
+    CLARITY_BASE_URL: str = Field(default="https://clarity-project.info/api")
     
     # Worksection
     WORKSECTION_API_KEY: str = Field(default="")

@@ -1,0 +1,42 @@
+{
+  "count": 6,
+  "code": 2893701252,
+  "correctINN": true,
+  "birthDate": "1979-03-24",
+  "items": [
+    {
+      "type": "fop",
+      "count": 1,
+      "statusService": true,
+      "link": "https://opendatabot.ua/api/v3/fop/ipn/2893701252",
+      "name": "Крайз Олександр Ігорович",
+      "status": "зареєстровано"
+    },
+    {
+      "type": "drorm",
+      "count": 0,
+      "statusService": true
+    },
+    {
+      "type": "penalty",
+      "count": 0,
+      "statusService": true
+    },
+    {
+      "type": "bankruptcy",
+      "count": 0,
+      "statusService": true
+    },
+    {
+      "type": "sanction",
+      "count": 0,
+      "statusService": true
+    },
+    {
+      "type": "rnboSanction",
+      "count": 0,
+      "statusService": true,
+      "text": "За ІПН немає записів у санкційному списку РНБО"
+    }
+  ]
+}

@@ -1,0 +1,406 @@
+{
+  "registry": {
+    "fullName": "ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ \"СТАРЖІ\"",
+    "shortName": "ТОВ \"СТАРЖІ\"",
+    "code": "43207029",
+    "location": "Україна, 27500, Кіровоградська обл., місто Світловодськ, ВУЛИЦЯ ГЕРОЇВ ЧОРНОБИЛЯ, будинок 34Г",
+    "email": "61984878@ukr.net",
+    "primaryActivity": "20.59 Виробництво іншої хімічної продукції, н.в.і.у.",
+    "status": "зареєстровано",
+    "ceoName": "Пономаренко Олександр Миколайович",
+    "phones": [
+      "380687304326"
+    ],
+    "formattedPhones": [
+      "380687304326"
+    ],
+    "registrationDate": "2019-09-03",
+    "capital": 4000000,
+    "lastTime": "2026-02-02 22:33:23",
+    "heads": [
+      {
+        "name": "ПОНОМАРЕНКО ОЛЕКСАНДР МИКОЛАЙОВИЧ",
+        "role": "керівник",
+        "type": "head",
+        "restriction": ""
+      },
+      {
+        "name": "КУЛИК ІГОР ЯКОВИЧ",
+        "role": "представник",
+        "restriction": "Відомості відсутні",
+        "type": "head"
+      }
+    ],
+    "registrations": [
+      {
+        "code": "37507880",
+        "name": "ДЕРЖАВНА СЛУЖБА СТАТИСТИКИ УКРАЇНИ",
+        "type": "statistic",
+        "startDate": "2019-09-04"
+      },
+      {
+        "code": "43142606",
+        "name": "ГОЛОВНЕ УПРАВЛІННЯ ДПС У КІРОВОГРАДСЬКІЙ ОБЛАСТІ,ОЛЕКСАНДРІЙСЬКЕ УПРАВЛІННЯ,СВІТЛОВОДСЬКА ДПІ(М.СВІТЛОВОДСЬК)",
+        "type": "taxoffice",
+        "description": "Реєстр платників податків",
+        "startNum": "046319241235",
+        "startDate": "2019-09-03"
+      },
+      {
+        "code": "43142606",
+        "name": "ГОЛОВНЕ УПРАВЛІННЯ ДПС У КІРОВОГРАДСЬКІЙ ОБЛАСТІ,ОЛЕКСАНДРІЙСЬКЕ УПРАВЛІННЯ,СВІТЛОВОДСЬКА ДПІ(М.СВІТЛОВОДСЬК)",
+        "type": "singletax",
+        "description": "Реєстр платників єдиного внеску",
+        "startDate": "2019-09-03"
+      }
+    ],
+    "beneficiaries": [
+      {
+        "name": "Кулик Ігор Якович",
+        "role": "засновник",
+        "amount": 1320000,
+        "location": "Україна, 49008, Дніпропетровська обл., місто Дніпро, ВУЛИЦЯ ДМИТРА КЕДРІНА, будинок 53А, корпус 3, квартира 166",
+        "city": "Дніпро",
+        "country": "Україна",
+        "amountPercent": 33,
+        "person": true
+      },
+      {
+        "name": "Пономаренко Олександр Миколайович",
+        "role": "засновник",
+        "amount": 1320000,
+        "location": "Україна, 39600, Полтавська обл., місто Кременчук, ВУЛИЦЯ ВАДИМА ПУГАЧОВА, будинок 19, квартира 5",
+        "city": "Кременчук",
+        "country": "Україна",
+        "amountPercent": 33,
+        "person": true
+      },
+      {
+        "name": "Сердюк Валентина Іванівна",
+        "role": "засновник",
+        "amount": 838300,
+        "location": "Україна, 19601, Черкаська обл., Черкаський р-н, село Геронимівка, ПРОВУЛОК ШКІЛЬНИЙ, будинок 3А",
+        "city": "Геронимівка",
+        "country": "Україна",
+        "amountPercent": 20.96,
+        "person": true
+      },
+      {
+        "name": "Сердюк Максим Анатолійович",
+        "role": "засновник",
+        "amount": 521700,
+        "location": "Україна, 19601, Черкаська обл., Черкаський р-н, село Геронимівка, ПРОВУЛОК ШКІЛЬНИЙ, будинок 3А",
+        "city": "Геронимівка",
+        "country": "Україна",
+        "amountPercent": 13.04,
+        "person": true
+      },
+      {
+        "name": "Кулик Ігор Якович",
+        "role": "Кінцевий бенефіціарний власник",
+        "location": "УКРАЇНА, 49008, ДНІПРОПЕТРОВСЬКА ОБЛ., МІСТО ДНІПРО, ВУЛИЦЯ ДМИТРА КЕДРІНА, БУДИНОК 53А, КОРПУС 3, КВАРТИРА 166. ,",
+        "amountPercent": 0,
+        "person": true
+      },
+      {
+        "name": "Пономаренко Олександр Миколайович",
+        "role": "Кінцевий бенефіціарний власник",
+        "location": "УКРАЇНА, 39600, ПОЛТАВСЬКА ОБЛ., МІСТО КРЕМЕНЧУК, ВУЛИЦЯ ВАДИМА ПУГАЧОВА, БУДИНОК 19, КВАРТИРА 5. .",
+        "amountPercent": 0,
+        "person": true
+      }
+    ],
+    "includeOlf": 1,
+    "state": 1,
+    "olfCode": "240",
+    "olfName": "ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ",
+    "foundingDocumentType": 1,
+    "executivePower": [],
+    "objectName": "Виконавчий комітет Світловодської міської ради",
+    "authorisedCapital": {
+      "value": 4000000
+    },
+    "management": "ЗАГАЛЬНІ ЗБОРИ, ДИРЕКТОР",
+    "activities": [
+      {
+        "code": "10.41",
+        "name": "Виробництво олії та тваринних жирів",
+        "isPrimary": false
+      },
+      {
+        "code": "20.14",
+        "name": "Виробництво інших основних органічних хімічних речовин",
+        "isPrimary": false
+      },
+      {
+        "code": "20.59",
+        "name": "Виробництво іншої хімічної продукції, н.в.і.у.",
+        "isPrimary": true
+      },
+      {
+        "code": "46.90",
+        "name": "Неспеціалізована оптова торгівля",
+        "isPrimary": false
+      },
+      {
+        "code": "49.41",
+        "name": "Вантажний автомобільний транспорт",
+        "isPrimary": false
+      },
+      {
+        "code": "52.21",
+        "name": "Допоміжне обслуговування наземного транспорту",
+        "isPrimary": false
+      },
+      {
+        "code": "52.29",
+        "name": "Інша допоміжна діяльність у сфері транспорту",
+        "isPrimary": false
+      },
+      {
+        "code": "68.20",
+        "name": "Надання в оренду й експлуатацію власного чи орендованого нерухомого майна",
+        "isPrimary": false
+      },
+      {
+        "code": "41.10",
+        "name": "Організація будівництва будівель",
+        "isPrimary": false
+      }
+    ],
+    "address": {
+      "zip": "27500",
+      "parts": {
+        "atu": "Кіровоградська обл., місто Світловодськ",
+        "house": "34Г",
+        "street": "ВУЛИЦЯ ГЕРОЇВ ЧОРНОБИЛЯ",
+        "atuCode": "3510900000",
+        "houseType": "будинок"
+      },
+      "address": "Україна, 27500, Кіровоградська обл., місто Світловодськ, ВУЛИЦЯ ГЕРОЇВ ЧОРНОБИЛЯ, будинок 34Г",
+      "country": "Україна"
+    },
+    "registration": {
+      "date": "2019-09-03",
+      "isMerge": false,
+      "isDivision": false,
+      "recordDate": "2019-09-03",
+      "isSeparation": false,
+      "recordNumber": "12241020000091778",
+      "isTransformation": false
+    },
+    "primaryActivityKind": {
+      "code": "20.59",
+      "name": "Виробництво іншої хімічної продукції, н.в.і.у.",
+      "regNumber": "10000001612361"
+    },
+    "prevRegistrationEndTerm": "2020-08-13",
+    "propertyStruct": {
+      "structFalse": false,
+      "structOpaque": false,
+      "structSigned": false
+    },
+    "fullNameEn": ""
+  },
+  "factors": [
+    {
+      "factorGroup": "tax",
+      "generalSystem": true,
+      "type": "system"
+    },
+    {
+      "factorGroup": "tax",
+      "icon": "✅",
+      "indicator": "positive",
+      "number": "432070204631",
+      "status": "active",
+      "text": "Платник ПДВ",
+      "type": "vat",
+      "specificText": "Платник ПДВ, ІПН платника 432070204631",
+      "databaseDate": "2026-02-03",
+      "dateStart": "2019-10-01"
+    },
+    {
+      "count": 1,
+      "factorGroup": "court",
+      "icon": "⚠️",
+      "indicator": "warning",
+      "link": "https://opendatabot.com/api/v2/court?company_code=43207029&apiKey=IBjBf8zssa",
+      "text": "Судовий реєстр — 1 рішення",
+      "type": "courtDecision"
+    },
+    {
+      "count": 1,
+      "factorGroup": "court",
+      "icon": "⚠️",
+      "indicator": "warning",
+      "items": [
+        {
+          "type": "administrative",
+          "count": 1,
+          "text": "Адміністративні",
+          "link": "https://opendatabot.com/api/v2/company-courts/administrative?code=43207029&apiKey=IBjBf8zssa",
+          "liveCount": 0
+        }
+      ],
+      "text": "Судові процеси компанії",
+      "type": "courtCompany"
+    },
+    {
+      "factorGroup": "edr",
+      "items": [
+        {
+          "date": "2020-07-11",
+          "changes": [
+            {
+              "field": "location",
+              "record": "update",
+              "text": "змінилась адреса",
+              "newValue": "27500, Кіровоградська обл., місто Світловодськ, ВУЛИЦЯ ГЕРОЇВ ЧОРНОБИЛЯ, будинок 34Г",
+              "oldValue": "49094, Дніпропетровська обл., місто Дніпро, Соборний район, ВУЛИЦЯ МАНДРИКІВСЬКА, будинок 66"
+            }
+          ]
+        },
+        {
+          "date": "2019-09-17",
+          "changes": [
+            {
+              "field": "ceo_name",
+              "record": "update",
+              "text": "змінився керівник",
+              "newValue": "Пономаренко Олександр Миколайович",
+              "oldValue": "Мороз Роман Сергійович"
+            },
+            {
+              "field": "activities",
+              "record": "update",
+              "text": "змінився вид діяльності",
+              "newValue": "20.59 Виробництво іншої хімічної продукції, н. в. і. у.",
+              "oldValue": "46.51 Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням"
+            }
+          ]
+        },
+        {
+          "date": "2019-09-15",
+          "changes": [
+            {
+              "field": "beneficiary",
+              "record": "delete",
+              "text": "видалений бенефіціарний власник",
+              "oldValue": "МОРОЗ РОМАН СЕРГІЙОВИЧ"
+            }
+          ]
+        }
+      ],
+      "text": "Змін реєстраційної інформації — 3",
+      "type": "history"
+    },
+    {
+      "factorGroup": "publicOfficial",
+      "text": "Власником компанії є декларант",
+      "items": [
+        {
+          "pib": "Скрипник Каріне Олегівна",
+          "declarantId": 91177,
+          "years": [
+            2019,
+            2020,
+            2021,
+            2022,
+            2023,
+            2024
+          ]
+        },
+        {
+          "pib": "Скрипник Валентин Володимирович",
+          "declarantId": 201294,
+          "years": [
+            2020
+          ]
+        }
+      ],
+      "type": "declarantOwner"
+    }
+  ],
+  "financialStatement": [
+    {
+      "year": 2020,
+      "revenue": 1627800,
+      "expenses": 1603600,
+      "profit": 24200,
+      "nonCurrentAssets": 3044000,
+      "currentAssets": 1112400,
+      "liability": 165900,
+      "balance": 4156399.9999999995,
+      "sector": "nongovernment"
+    },
+    {
+      "year": 2021,
+      "forms": [
+        {
+          "code": "S0111006",
+          "title": "Баланс та фінансові результати"
+        }
+      ],
+      "revenue": 4965700,
+      "expenses": 4748400,
+      "profit": 179900,
+      "nonCurrentAssets": 3318700,
+      "currentAssets": 2105900,
+      "liability": 1254200,
+      "balance": 5424600,
+      "employees": 3
+    },
+    {
+      "year": 2022,
+      "forms": [
+        {
+          "code": "S0111006",
+          "title": "Баланс та фінансові результати"
+        }
+      ],
+      "revenue": 2271300,
+      "expenses": 3022200,
+      "profit": -750900,
+      "nonCurrentAssets": 2911500,
+      "currentAssets": 2532200,
+      "liability": 2024200,
+      "balance": 5443700,
+      "employees": 4
+    },
+    {
+      "year": 2023,
+      "forms": [
+        {
+          "code": "S0111006",
+          "title": "Баланс та фінансові результати"
+        }
+      ],
+      "revenue": 7799000,
+      "expenses": 8011400,
+      "profit": -212400,
+      "nonCurrentAssets": 2497300,
+      "currentAssets": 3622400,
+      "liability": 2912600,
+      "balance": 6119700,
+      "employees": 3
+    },
+    {
+      "year": 2024,
+      "forms": [
+        {
+          "code": "S0111007",
+          "title": "Баланс та фінансові результати"
+        }
+      ],
+      "revenue": 19439100,
+      "expenses": 15951500,
+      "profit": 3033200,
+      "nonCurrentAssets": 2189100,
+      "currentAssets": 6553800,
+      "liability": 2502500,
+      "balance": 8742900,
+      "employees": 4
+    }
+  ]
+}

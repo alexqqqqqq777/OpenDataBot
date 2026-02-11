@@ -1,0 +1,190 @@
+{
+  "list": {
+    "bbb17ff85c6142419fb20cb262b3f0bf": {
+      "name": "КРАЙЗ ОЛЕКСАНДР ІГОРОВИЧ",
+      "hash": "bbb17ff85c6142419fb20cb262b3f0bf",
+      "edrs": {
+        "": [
+          {
+            "Name": "КРАЙЗ ОЛЕКСАНДР ІГОРОВИЧ",
+            "Type": "",
+            "Actual": "0",
+            "Edr": "40616200",
+            "EdrName": "АДВОКАТСЬКЕ ОБ'ЄДНАННЯ \"ЛІБЕРТІ ВЕЙ\"",
+            "address_parts": "{\"region\": {\"code\": \"UA63000000000041885\", \"name\": \"Харківська область\"}, \"street\": {\"name\": \"ЧЕРНИШЕВСЬКА\", \"type\": \"вулиця\"}, \"building\": {\"name\": \"66\", \"type\": \"будинок\"}, \"district\": null, \"locality\": {\"name\": \"ХАРКІВ\", \"type\": \"місто\"}, \"premises\": {\"name\": \"7\", \"type\": \"офіс\"}, \"structure\": null, \"postal_code\": null}",
+            "EdrStatus": "registered",
+            "Locality": "місто ХАРКІВ",
+            "InProzorro": true,
+            "EdrStatusName": "Зареєстровано"
+          }
+        ],
+        "director": [
+          {
+            "Name": "КРАЙЗ ОЛЕКСАНДР ІГОРОВИЧ",
+            "Type": "director",
+            "Actual": "0",
+            "Edr": "40616200",
+            "EdrName": "АДВОКАТСЬКЕ ОБ'ЄДНАННЯ \"ЛІБЕРТІ ВЕЙ\"",
+            "address_parts": "{\"region\": {\"code\": \"UA63000000000041885\", \"name\": \"Харківська область\"}, \"street\": {\"name\": \"ЧЕРНИШЕВСЬКА\", \"type\": \"вулиця\"}, \"building\": {\"name\": \"66\", \"type\": \"будинок\"}, \"district\": null, \"locality\": {\"name\": \"ХАРКІВ\", \"type\": \"місто\"}, \"premises\": {\"name\": \"7\", \"type\": \"офіс\"}, \"structure\": null, \"postal_code\": null}",
+            "EdrStatus": "registered",
+            "Locality": "місто ХАРКІВ",
+            "InProzorro": true,
+            "EdrStatusName": "Зареєстровано"
+          }
+        ],
+        "signer": [
+          {
+            "Name": "КРАЙЗ ОЛЕКСАНДР ІГОРОВИЧ",
+            "Type": "signer",
+            "Actual": "1",
+            "Edr": "40616200",
+            "EdrName": "АДВОКАТСЬКЕ ОБ'ЄДНАННЯ \"ЛІБЕРТІ ВЕЙ\"",
+            "address_parts": "{\"region\": {\"code\": \"UA63000000000041885\", \"name\": \"Харківська область\"}, \"street\": {\"name\": \"ЧЕРНИШЕВСЬКА\", \"type\": \"вулиця\"}, \"building\": {\"name\": \"66\", \"type\": \"будинок\"}, \"district\": null, \"locality\": {\"name\": \"ХАРКІВ\", \"type\": \"місто\"}, \"premises\": {\"name\": \"7\", \"type\": \"офіс\"}, \"structure\": null, \"postal_code\": null}",
+            "EdrStatus": "registered",
+            "Locality": "місто ХАРКІВ",
+            "InProzorro": true,
+            "EdrStatusName": "Зареєстровано"
+          }
+        ],
+        "founder": [
+          {
+            "Name": "КРАЙЗ ОЛЕКСАНДР ІГОРОВИЧ",
+            "Type": "founder",
+            "Actual": "1",
+            "Edr": "40616200",
+            "EdrName": "АДВОКАТСЬКЕ ОБ'ЄДНАННЯ \"ЛІБЕРТІ ВЕЙ\"",
+            "address_parts": "{\"region\": {\"code\": \"UA63000000000041885\", \"name\": \"Харківська область\"}, \"street\": {\"name\": \"ЧЕРНИШЕВСЬКА\", \"type\": \"вулиця\"}, \"building\": {\"name\": \"66\", \"type\": \"будинок\"}, \"district\": null, \"locality\": {\"name\": \"ХАРКІВ\", \"type\": \"місто\"}, \"premises\": {\"name\": \"7\", \"type\": \"офіс\"}, \"structure\": null, \"postal_code\": null}",
+            "EdrStatus": "registered",
+            "Locality": "місто ХАРКІВ",
+            "InProzorro": true,
+            "EdrStatusName": "Зареєстровано"
+          }
+        ],
+        "fop-name": [
+          {
+            "Name": "КРАЙЗ ОЛЕКСАНДР ІГОРОВИЧ",
+            "FopID": "0f1da9a5623772aed464e96ca1e21fe0",
+            "address_parts": "{\"region\": {\"code\": \"UA63000000000041885\", \"name\": \"Харківська область\"}, \"street\": {\"name\": \"ГАГАРІНА\", \"type\": \"вулиця\"}, \"building\": {\"name\": \"45-А\", \"type\": \"будинок\"}, \"district\": null, \"locality\": {\"name\": \"ХАРКІВ\", \"type\": \"місто\"}, \"premises\": {\"name\": \"229\", \"type\": \"квартира\"}, \"structure\": null, \"postal_code\": \"61001\"}",
+            "EdrStatus": "registered",
+            "Type": "fop-name",
+            "Actual": "1",
+            "Locality": "місто ХАРКІВ",
+            "EdrStatusName": "Зареєстровано"
+          }
+        ]
+      },
+      "otherpersons": [
+        {
+          "id": "625d7ded8990e5a8a328d4e7681270a8",
+          "full_name": "КРАЙЗ ОЛЕКСАНДР ІГОРОВИЧ",
+          "type": "attourney",
+          "updated": {
+            "date": "2026-02-05 15:48:38.000000",
+            "timezone_type": 3,
+            "timezone": "Europe/Kyiv"
+          },
+          "created": {
+            "date": "2026-02-05 15:48:38.000000",
+            "timezone_type": 3,
+            "timezone": "Europe/Kyiv"
+          },
+          "data": {
+            "ID": null,
+            "Phone": null,
+            "CertID": "1599",
+            "Address": null,
+            "Council": "Рада адвокатів Харківської області",
+            "CertDate": null,
+            "Locality": null,
+            "AddressRaw": null,
+            "DecisionID": "36",
+            "Experience": null,
+            "Assistants": null,
+            "Termination": null,
+            "DecisionDate": null,
+            "CertAuthority": "Рада адвокатів Харківської області"
+          },
+          "locality": null,
+          "actual": true
+        },
+        {
+          "id": "2f5b13c255b0a373be4f910b0a2ad822",
+          "full_name": "КРАЙЗ ОЛЕКСАНДР ІГОРОВИЧ",
+          "type": "attourney",
+          "updated": {
+            "date": "2023-03-19 19:59:24.000000",
+            "timezone_type": 3,
+            "timezone": "Europe/Kyiv"
+          },
+          "created": {
+            "date": "2019-04-26 07:18:02.000000",
+            "timezone_type": 3,
+            "timezone": "Europe/Kyiv"
+          },
+          "data": {
+            "ID": "11018",
+            "Phone": "",
+            "CertID": "1599",
+            "Address": "",
+            "Council": " Рада адвокатів Харківської області ",
+            "CertDate": null,
+            "Locality": "",
+            "AddressRaw": "",
+            "DecisionID": "36",
+            "Experience": "",
+            "Assistants": null,
+            "Termination": null,
+            "DecisionDate": null,
+            "CertAuthority": "Рада адвокатів Харківської області"
+          },
+          "locality": "",
+          "actual": false
+        }
+      ],
+      "securityInfo": {
+        "wanted": [
+          {
+            "source": "mvs-wanted",
+            "name": "КРАЙЗ ОЛЕКСАНДР ІГОРОВИЧ",
+            "name_hash": "bbb17ff85c6142419fb20cb262b3f0bf",
+            "birth_date": "1979-03-24",
+            "category": "ОСОБА, ЯКА ПЕРЕХОВУЄТЬСЯ ВІД ОРГАНІВ ДОСУДОВОГО РОЗСЛІДУВАННЯ",
+            "lost_place": "ХАРКІВСЬКА, ХАРКІВ",
+            "lost_date": "2022-11-03",
+            "restraint": "НЕ ЗАСТОСОВУВАВСЯ",
+            "charge": "СТ.228 Ч.1",
+            "wanted_by": "ТЕРЕБОВЛЯНСЬКИЙ ВІДДІЛ ПОЛІЦІЇ ГУНП В ТЕРНОПІЛЬСЬКІЙ ОБЛАСТІ",
+            "is_actual": false,
+            "created_at": "2022-11-23 00:00:00",
+            "last_seen": "2022-12-17 00:00:00",
+            "deleted_at": null
+          },
+          {
+            "source": "mvs-wanted",
+            "name": "КРАЙЗ ОЛЕКСАНДР ІГОРОВИЧ",
+            "name_hash": "bbb17ff85c6142419fb20cb262b3f0bf",
+            "birth_date": "1979-03-24",
+            "category": "ОСОБА, ЯКА ПЕРЕХОВУЄТЬСЯ ВІД ОРГАНІВ ДОСУДОВОГО РОЗСЛІДУВАННЯ",
+            "lost_place": "ХАРКІВСЬКА, ХАРКІВ",
+            "lost_date": "2022-11-03",
+            "restraint": "НЕ ЗАСТОСОВУВАВСЯ",
+            "charge": "СТ.286 Ч.1",
+            "wanted_by": "ТЕРЕБОВЛЯНСЬКИЙ ВІДДІЛ ПОЛІЦІЇ ГУНП В ТЕРНОПІЛЬСЬКІЙ ОБЛАСТІ",
+            "is_actual": false,
+            "created_at": "2022-12-18 00:00:00",
+            "last_seen": "2023-01-10 00:00:00",
+            "deleted_at": null
+          }
+        ]
+      }
+    }
+  },
+  "stats": {
+    "query_time": 0.33170104026794434,
+    "quota": {
+      "used": 9,
+      "max": 20,
+      "key_used": 9
+    }
+  }
+}

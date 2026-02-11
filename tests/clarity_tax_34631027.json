@@ -1,0 +1,31 @@
+{
+  "single_tax": null,
+  "vat": [
+    {
+      "id": "d32012377d489df5ba1df5ed799b200b",
+      "edrpou": "34631027",
+      "vat_number": "346310220317",
+      "name": "ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ \"НОВААГРО УКРАЇНА\"",
+      "name_hash": "c3dca4f3f9ce84f4bddb7984e946f680",
+      "sfs_code": "2031",
+      "reg_date": "2011-12-01",
+      "cancel_date": null,
+      "special_reg_date": null,
+      "special_cancel_date": null,
+      "cancel_reason": null,
+      "cancel_operation": "Зареєстровано",
+      "hash": "b01dc01d83e78300459419518bde3178",
+      "updated_at": "2026-02-11 16:42:59",
+      "created_at": "2024-12-11 17:01:49"
+    }
+  ],
+  "non_profit": null,
+  "stats": {
+    "query_time": 0.011833906173706055,
+    "quota": {
+      "used": 20,
+      "max": 20,
+      "key_used": 19
+    }
+  }
+}

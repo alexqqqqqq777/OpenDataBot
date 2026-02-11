@@ -1,0 +1,32 @@
+{
+  "vehicles": [
+    {
+      "OwnerEdr": "34631027",
+      "LicenseIssue": null,
+      "LicenseStart": null,
+      "LicenseEnd": null,
+      "LicenseStatus": null,
+      "VehicleCert": null,
+      "VehicleStatus": "",
+      "VehicleType": "Вантажний > 3,5 т.",
+      "VehicleCategory": "cargo",
+      "VehicleNum": "АХ6935ВН",
+      "VehicleVendor": "КАМАЗ",
+      "VehicleModel": null,
+      "VehicleLoad": "0",
+      "VehicleSeats": "0",
+      "VehicleYear": null,
+      "VINCode": null,
+      "Updated": 1645156005,
+      "Created": 1586141050
+    }
+  ],
+  "stats": {
+    "query_time": 0.0077059268951416016,
+    "quota": {
+      "used": 17,
+      "max": 20,
+      "key_used": 16
+    }
+  }
+}

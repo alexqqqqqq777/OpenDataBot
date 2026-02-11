@@ -1,0 +1,234 @@
+{
+  "paginator": {
+    "total_found": 23,
+    "current_page": 1,
+    "total_pages": 1
+  },
+  "list": [
+    {
+      "Name": "ПОЛУМИСНИЙ СЕРГІЙ ВАЛЕРІЙОВИЧ",
+      "Hash": "c2f160b61bb9674791a75d610441d83d",
+      "Type": "beneficiary",
+      "Actual": "1",
+      "SourceType": "edr",
+      "Updated": "1770798152",
+      "TypeName": "Бенефіціар",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "ПОЛУМИСНИЙ СЕРГІЙ ВАЛЕРІЙОВИЧ",
+      "Hash": "c2f160b61bb9674791a75d610441d83d",
+      "Type": "signer",
+      "Actual": "1",
+      "SourceType": "edr",
+      "Updated": "1770798152",
+      "TypeName": "Підписант",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "ПОЛУМИСНИЙ СЕРГІЙ ВАЛЕРІЙОВИЧ",
+      "Hash": "c2f160b61bb9674791a75d610441d83d",
+      "Type": "director",
+      "Actual": "1",
+      "SourceType": "edr",
+      "Updated": "1770798152",
+      "TypeName": "Керівник",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "КРАСОВСЬКИЙ ВОЛОДИМИР ГРИГОРОВИЧ",
+      "Hash": "4150811723b49aa48636ee2aa93303e0",
+      "Type": "signer",
+      "Actual": "1",
+      "SourceType": "edr",
+      "Updated": "1770798152",
+      "TypeName": "Підписант",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "НЕТІКОВА ТЕТЯНА ЛЕОНІДІВНА",
+      "Hash": "ee57a10fa0b23eb5ad5b2c2071de3799",
+      "Type": "accountant",
+      "Actual": "1",
+      "SourceType": "fin-report",
+      "Updated": "1764799200",
+      "TypeName": "Бухгалтер",
+      "SourceName": "Фінансова звітність"
+    },
+    {
+      "Name": "КОЖУШНИЙ КИРИЛО СЕРГІЙОВИЧ",
+      "Hash": "4b09f3d67be7d49439e13af6cc07bf30",
+      "Type": "contact",
+      "Actual": "1",
+      "SourceType": "prozorro-sale",
+      "Updated": "1718344685",
+      "TypeName": "Контакт",
+      "SourceName": "Prozorro.Продажі"
+    },
+    {
+      "Name": "ПОЛУМИСНИЙ СЕРГІЙ ВАЛЕРІЙОВИЧ",
+      "Hash": "c2f160b61bb9674791a75d610441d83d",
+      "Type": "contact",
+      "Actual": "1",
+      "SourceType": "prozorro-sale",
+      "Updated": "1712325583",
+      "TypeName": "Контакт",
+      "SourceName": "Prozorro.Продажі"
+    },
+    {
+      "Name": "ЛУКІЄНКО ОКСАНА ОЛЕКСІЇВНА",
+      "Hash": "859615f217c6a7176915495ba2f32d24",
+      "Type": "accountant",
+      "Actual": "1",
+      "SourceType": "fin-report",
+      "Updated": "1669154400",
+      "TypeName": "Бухгалтер",
+      "SourceName": "Фінансова звітність"
+    },
+    {
+      "Name": "СНІДАЛОВА ОЛЕНА ВОЛОДИМИРІВНА",
+      "Hash": "0f965c21a22f6dfedf2e68a97553670e",
+      "Type": "accountant",
+      "Actual": "1",
+      "SourceType": "fin-report",
+      "Updated": "1657314000",
+      "TypeName": "Бухгалтер",
+      "SourceName": "Фінансова звітність"
+    },
+    {
+      "Name": "ПОНОМАРЕНКО АНАТОЛІЙ ВАСИЛЬОВИЧ",
+      "Hash": "9e48c40e47f7b0adc1ac3a57de429900",
+      "Type": "other",
+      "Actual": "1",
+      "SourceType": "inspection",
+      "Updated": "1638379140",
+      "TypeName": "Інше",
+      "SourceName": "Перевірки"
+    },
+    {
+      "Name": "ПОЛУМИСНИЙ СЕРГІЙ ВАЛЕРІЙОВИЧ",
+      "Hash": "c2f160b61bb9674791a75d610441d83d",
+      "Type": "other",
+      "Actual": "1",
+      "SourceType": "inspection",
+      "Updated": "1638379140",
+      "TypeName": "Інше",
+      "SourceName": "Перевірки"
+    },
+    {
+      "Name": "ГРУБА СЕРГІЙ ВОЛОДИМИРОВИЧ",
+      "Hash": "528dffacc9a2ad9eadcb87483de92e93",
+      "Type": "other",
+      "Actual": "1",
+      "SourceType": "inspection",
+      "Updated": "1638294960",
+      "TypeName": "Інше",
+      "SourceName": "Перевірки"
+    },
+    {
+      "Name": "ПОЛУМИСНИЙ СЕРГІЙ ВАЛЕРІЙОВИЧ",
+      "Hash": "c2f160b61bb9674791a75d610441d83d",
+      "SourceType": "edr",
+      "Updated": "1626082292",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "КОМПАНІЯ 'НОВААГРО ЛІМІТЕД'(NОVААGRО LІМІТЕD)",
+      "Hash": "4517f3f1e41d61ccae9585aa044176bb",
+      "Type": "founder",
+      "SourceType": "edr",
+      "Updated": "1590244123",
+      "TypeName": "Засновник",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "КІНЦЕВИЙ БЕНЕФІЦІАРНИЙ ВЛАСНИК (КОНТРОЛЕР) КОМПАНІЯ 'НОВААГРО ЛІМІТЕД'-ПОЛУМИСНИЙ СЕРГІЙ ВАЛЕРІЙОВИЧ",
+      "Hash": "353347300b65bbe69762d2dd63ea39a7",
+      "Type": "founder",
+      "SourceType": "edr",
+      "Updated": "1577950254",
+      "TypeName": "Засновник",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "ЛЕОНІДУ МАВРІКІОС",
+      "Hash": "277ebfcb9ab258c88400ed2f84beb40f",
+      "Type": "beneficiary",
+      "SourceType": "edr",
+      "Updated": "1441054800",
+      "TypeName": "Бенефіціар",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "ЛЕВІН АНДРІЙ ПЕТРОВИЧ",
+      "Hash": "77c6d3ff06abf03496fa4beb4f7354f4",
+      "Type": "signer",
+      "SourceType": "edr",
+      "Updated": "1435870800",
+      "TypeName": "Підписант",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "ДЕМИДЧУК ОЛЬГА ДМИТРІВНА",
+      "Hash": "5e416d955555a4f70058d3374f2215ba",
+      "Type": "signer",
+      "SourceType": "edr",
+      "Updated": "1301864400",
+      "TypeName": "Підписант",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "НЄЖЕНЕЦЬ ЛАРИСА ОЛЕКСАНДРІВНА",
+      "Hash": "aaf85f9b665a26636d99d1cef4ad96f7",
+      "Type": "founder",
+      "SourceType": "edr",
+      "Updated": "1271278800",
+      "TypeName": "Засновник",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "НЄЖЕНЕЦЬ ЛАРИСА ОЛЕКСАНДРІВНА",
+      "Hash": "aaf85f9b665a26636d99d1cef4ad96f7",
+      "Type": "signer",
+      "SourceType": "edr",
+      "Updated": "1221426000",
+      "TypeName": "Підписант",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "СОРОКІН АНДРІЙ АНАТОЛІЙОВИЧ",
+      "Hash": "0689dd7871b41a28eee3113f86544e55",
+      "Type": "founder",
+      "SourceType": "edr",
+      "Updated": "1221426000",
+      "TypeName": "Засновник",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "ТИШИНА ОЛЕНА ВОЛОДИМИРІВНА",
+      "Hash": "2475b494b3c88e80eee5d0f0b43f5226",
+      "Type": "founder",
+      "SourceType": "edr",
+      "Updated": "1160686800",
+      "TypeName": "Засновник",
+      "SourceName": "ЄДР"
+    },
+    {
+      "Name": "ТИШИНА ОЛЕНА ВОЛОДИМИРІВНА",
+      "Hash": "2475b494b3c88e80eee5d0f0b43f5226",
+      "Type": "signer",
+      "SourceType": "edr",
+      "Updated": "1160686800",
+      "TypeName": "Підписант",
+      "SourceName": "ЄДР"
+    }
+  ],
+  "stats": {
+    "query_time": 0.02194809913635254,
+    "quota": {
+      "used": 16,
+      "max": 20,
+      "key_used": 15
+    }
+  }
+}

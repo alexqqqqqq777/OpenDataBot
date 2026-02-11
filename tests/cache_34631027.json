@@ -1,0 +1,482 @@
+{
+  "registry": {
+    "fullName": "ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ \"НОВААГРО УКРАЇНА\"",
+    "shortName": "ТОВ \"НОВААГРО УКРАЇНА\"",
+    "code": "34631027",
+    "location": "Україна, 61002, Харківська обл., місто Харків, ВУЛИЦЯ ЧЕРНИШЕВСЬКА, будинок 66",
+    "primaryActivity": "68.20 Надання в оренду й експлуатацію власного чи орендованого нерухомого майна",
+    "status": "зареєстровано",
+    "ceoName": "Полумисний Сергій Валерійович",
+    "phones": [
+      "380573414321"
+    ],
+    "formattedPhones": [
+      "380573414321"
+    ],
+    "registrationDate": "2006-10-13",
+    "capital": 284923000,
+    "lastTime": "2026-02-02 17:34:46",
+    "heads": [
+      {
+        "name": "ПОЛУМИСНИЙ СЕРГІЙ ВАЛЕРІЙОВИЧ",
+        "role": "керівник",
+        "type": "head",
+        "restriction": ""
+      },
+      {
+        "name": "ПОЛУМИСНИЙ СЕРГІЙ ВАЛЕРІЙОВИЧ",
+        "role": "представник",
+        "restriction": "Відомості відсутні",
+        "type": "head"
+      },
+      {
+        "name": "КРАСОВСЬКИЙ ВОЛОДИМИР ГРИГОРОВИЧ",
+        "role": "представник",
+        "restriction": "Вчиняти дії від імені юридичної особи, у тому числі підписувати договори тощо (згідно із Статутом), Подавати документи для державної реєстрації від імені юридичної особи",
+        "type": "head"
+      }
+    ],
+    "registrations": [
+      {
+        "code": "37507880",
+        "name": "ДЕРЖАВНА СЛУЖБА СТАТИСТИКИ УКРАЇНИ",
+        "type": "statistic",
+        "startDate": "2006-10-16"
+      },
+      {
+        "code": "43983495",
+        "name": "ГОЛОВНЕ УПРАВЛІННЯ ДПС У ХАРКІВСЬКІЙ ОБЛАСТІ, ХАРКІВСЬКА ДЕРЖАВНА ПОДАТКОВА ІНСПЕКЦІЯ",
+        "type": "taxoffice",
+        "startNum": "148010200000",
+        "startDate": "2006-10-13"
+      },
+      {
+        "code": "43983495",
+        "name": "ГОЛОВНЕ УПРАВЛІННЯ ДПС У ХАРКІВСЬКІЙ ОБЛАСТІ, ХАРКІВСЬКА ДЕРЖАВНА ПОДАТКОВА ІНСПЕКЦІЯ",
+        "type": "singletax"
+      }
+    ],
+    "beneficiaries": [
+      {
+        "name": "КОМПАНІЯ \"НОВААГРО ЛІМІТЕД\"(NOVAAGRO LIMITED)",
+        "role": "засновник",
+        "amount": 284923000,
+        "location": "Кіпр, 3071,1060, місто Нікосія, вулиця Бумпулінас, будинок 11, поверх 1",
+        "city": "Нікосія",
+        "country": "Кіпр",
+        "amountPercent": 100,
+        "person": false
+      },
+      {
+        "name": "КОМПАНІЯ \"НОВААГРО ЛІМІТЕД\"(NOVAAGRO LIMITED)",
+        "beneficiaryName": "Полумисний Сергій Валерійович",
+        "role": "Кінцевий бенефіціарний власник",
+        "interest": 100,
+        "location": "Україна, 61002, Харківська обл., місто Харків, вул.Потебні, будинок 6, квартира 17",
+        "city": "Харків",
+        "country": "Україна",
+        "amountPercent": 0,
+        "person": true
+      }
+    ],
+    "includeOlf": 1,
+    "state": 1,
+    "olfCode": "240",
+    "olfName": "ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ",
+    "foundingDocumentType": 1,
+    "executivePower": [],
+    "objectName": "Департамент реєстрації Харківської міської ради",
+    "authorisedCapital": {
+      "value": 284923000
+    },
+    "management": "ВИЩИЙ: ЗАГАЛЬНІ ЗБОРИ; ВИКОНАВЧИЙ: ГЕНЕРАЛЬНИЙ ДИРЕКТОР",
+    "activities": [
+      {
+        "code": "46.21",
+        "name": "Оптова торгівля зерном, необробленим тютюном, насінням і кормами для тварин",
+        "isPrimary": false
+      },
+      {
+        "code": "77.31",
+        "name": "Надання в оренду сільськогосподарських машин і устатковання",
+        "isPrimary": false
+      },
+      {
+        "code": "46.90",
+        "name": "Неспеціалізована оптова торгівля",
+        "isPrimary": false
+      },
+      {
+        "code": "52.29",
+        "name": "Інша допоміжна діяльність у сфері транспорту",
+        "isPrimary": false
+      },
+      {
+        "code": "68.20",
+        "name": "Надання в оренду й експлуатацію власного чи орендованого нерухомого майна",
+        "isPrimary": true
+      },
+      {
+        "code": "70.10",
+        "name": "Діяльність головних управлінь (хед-офісів)",
+        "isPrimary": false
+      },
+      {
+        "code": "41.20",
+        "name": "Будівництво житлових і нежитлових будівель",
+        "isPrimary": false
+      },
+      {
+        "code": "35.12",
+        "name": "Передача електроенергії",
+        "isPrimary": false
+      },
+      {
+        "code": "35.14",
+        "name": "Торгівля електроенергією",
+        "isPrimary": false
+      },
+      {
+        "code": "45.11",
+        "name": "Торгівля автомобілями та легковими автотранспортними засобами",
+        "isPrimary": false
+      },
+      {
+        "code": "68.10",
+        "name": "Купівля та продаж власного нерухомого майна",
+        "isPrimary": false
+      },
+      {
+        "code": "77.11",
+        "name": "Надання в оренду автомобілів і легкових автотранспортних засобів",
+        "isPrimary": false
+      },
+      {
+        "code": "77.33",
+        "name": "Надання в оренду офісних машин і устатковання, у тому числі комп'ютерів",
+        "isPrimary": false
+      }
+    ],
+    "address": {
+      "zip": "61002",
+      "parts": {
+        "atu": "Харківська обл., місто Харків",
+        "house": "66",
+        "street": "ВУЛИЦЯ ЧЕРНИШЕВСЬКА",
+        "atuCode": "6310136600",
+        "houseType": "будинок"
+      },
+      "address": "Україна, 61002, Харківська обл., місто Харків, ВУЛИЦЯ ЧЕРНИШЕВСЬКА, будинок 66",
+      "country": "Україна"
+    },
+    "registration": {
+      "date": "2006-10-13",
+      "isMerge": false,
+      "isDivision": false,
+      "recordDate": "2006-10-13",
+      "isSeparation": false,
+      "recordNumber": "14801020000029798",
+      "isTransformation": false
+    },
+    "assignees": [
+      {
+        "code": "43428571",
+        "name": "ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ \"ХАРКІВ-ЛЮКС\"",
+        "address": {
+          "zip": "61001",
+          "parts": {
+            "atu": "Харківська обл., місто Харків",
+            "house": "5",
+            "street": "ПРОВУЛОК ПОШТОВИЙ",
+            "atuCode": "6310137500",
+            "houseType": "будинок"
+          },
+          "address": "Україна, 61001, Харківська обл., місто Харків, ПРОВУЛОК ПОШТОВИЙ, будинок 5",
+          "country": "Україна"
+        }
+      }
+    ],
+    "predecessors": [
+      {
+        "code": "42977130",
+        "name": "ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ \"ШЕВЧЕНКІВСЬКИЙ ЕЛЕВАТОР\"",
+        "address": {
+          "zip": "63601",
+          "parts": {
+            "atu": "Харківська обл., Шевченківський р-н, селище міського типу Шевченкове",
+            "house": "2",
+            "street": "ВУЛИЦЯ ШЕВЧЕНКА",
+            "atuCode": "6325755100",
+            "houseType": "будинок"
+          },
+          "address": "Україна, 63601, Харківська обл., Шевченківський р-н, селище міського типу Шевченкове, ВУЛИЦЯ ШЕВЧЕНКА, будинок 2",
+          "country": "Україна"
+        }
+      }
+    ],
+    "primaryActivityKind": {
+      "code": "68.20",
+      "name": "Надання в оренду й експлуатацію власного чи орендованого нерухомого майна"
+    },
+    "propertyStruct": {
+      "structFalse": false,
+      "structOpaque": false,
+      "structSigned": false,
+      "structExcluded": false
+    },
+    "fullNameEn": "",
+    "email": ""
+  },
+  "factors": [
+    {
+      "factorGroup": "tax",
+      "generalSystem": true,
+      "type": "system"
+    },
+    {
+      "factorGroup": "tax",
+      "icon": "✅",
+      "indicator": "positive",
+      "number": "346310220317",
+      "status": "active",
+      "text": "Платник ПДВ",
+      "type": "vat",
+      "specificText": "Платник ПДВ, ІПН платника 346310220317",
+      "databaseDate": "2026-02-09",
+      "dateStart": "2011-12-01"
+    },
+    {
+      "factorGroup": "tax",
+      "government": 0,
+      "icon": "⚠️",
+      "indicator": "warning",
+      "local": 144973,
+      "text": "Податковий борг на 01.06.2021 — 144 973 грн\n",
+      "total": 144973,
+      "type": "debt"
+    },
+    {
+      "count": 481,
+      "factorGroup": "court",
+      "icon": "⚠️",
+      "indicator": "warning",
+      "link": "https://opendatabot.com/api/v2/court?company_code=34631027&apiKey=IBjBf8zssa",
+      "text": "Судовий реєстр — 481 рішення",
+      "type": "courtDecision"
+    },
+    {
+      "count": 137,
+      "factorGroup": "court",
+      "icon": "⚠️",
+      "indicator": "warning",
+      "items": [
+        {
+          "type": "civil",
+          "count": 35,
+          "text": "Цивільні",
+          "link": "https://opendatabot.com/api/v2/company-courts/civil?code=34631027&apiKey=IBjBf8zssa",
+          "liveCount": 1
+        },
+        {
+          "type": "criminal",
+          "count": 17,
+          "text": "Криминальні",
+          "link": "https://opendatabot.com/api/v2/company-courts/criminal?code=34631027&apiKey=IBjBf8zssa",
+          "liveCount": 0
+        },
+        {
+          "type": "arbitrage",
+          "count": 65,
+          "text": "Господарські",
+          "link": "https://opendatabot.com/api/v2/company-courts/arbitrage?code=34631027&apiKey=IBjBf8zssa",
+          "liveCount": 4
+        },
+        {
+          "type": "administrative",
+          "count": 19,
+          "text": "Адміністративні",
+          "link": "https://opendatabot.com/api/v2/company-courts/administrative?code=34631027&apiKey=IBjBf8zssa",
+          "liveCount": 0
+        },
+        {
+          "type": "undefined",
+          "count": 1,
+          "text": "Категорію не визначено",
+          "link": "https://opendatabot.com/api/v2/company-courts/undefined?code=34631027&apiKey=IBjBf8zssa",
+          "liveCount": 0
+        }
+      ],
+      "text": "Судові процеси компанії",
+      "type": "courtCompany"
+    },
+    {
+      "factorGroup": "edr",
+      "items": [
+        {
+          "date": "2025-07-01",
+          "changes": [
+            {
+              "field": "authorised_capital",
+              "record": "update",
+              "date": "2025-07-01",
+              "newValue": "284923000",
+              "oldValue": "260000000"
+            },
+            {
+              "field": "founder_capital",
+              "record": "update",
+              "date": "2025-07-01",
+              "text": "змінилась частка в статутному капіталі засновника",
+              "newValue": "284923000",
+              "oldValue": "260000000"
+            }
+          ]
+        },
+        {
+          "date": "2021-08-25",
+          "changes": [
+            {
+              "field": "beneficiary_address",
+              "record": "update",
+              "text": "змінилась адреса реєстрації бенефіціарного власника",
+              "newValue": "Україна, 61002, Харківська обл., місто Харків, вул.Потебні, будинок 6, квартира 17",
+              "oldValue": "УКРАЇНА, 61002, М. ХАРКІВ, КИЇВСЬКІЙ РАЙОН, ВУЛИЦЯ ПОТЕБНІ, БУДИНОК 6, КВАРТИРА 17"
+            }
+          ]
+        },
+        {
+          "date": "2021-06-18",
+          "changes": [
+            {
+              "field": "founder_capital",
+              "record": "update",
+              "text": "змінилась частка в статутному капіталі засновника",
+              "newValue": "260000000",
+              "oldValue": "259895960"
+            }
+          ]
+        },
+        {
+          "date": "2020-12-03",
+          "changes": [
+            {
+              "field": "beneficiary",
+              "record": "delete",
+              "text": "видалений бенефіціарний власник",
+              "oldValue": "КІНЦЕВИЙ БЕНЕФІЦІАРНИЙ ВЛАСНИК (КОНТРОЛЕР) КОМПАНІЯ \"НОВААГРО ЛІМІТЕД\"- ПОЛУМИСНИЙ СЕРГІЙ ВАЛЕРІЙОВИЧ, 01.07.1976 Р.Н., УКРАЇНА, 61002, М. ХАРКІВ, КИЇВСЬКІЙ РАЙОН, ВУЛИЦЯ ПОТЕБНІ, БУДИНОК 6, КВАРТИРА 17"
+            }
+          ]
+        },
+        {
+          "date": "2018-10-23",
+          "changes": [
+            {
+              "field": "beneficiary",
+              "record": "delete",
+              "text": "видалений бенефіціарний власник",
+              "oldValue": "КІНЦЕВИЙ БЕНЕФІЦІАРНИЙ ВЛАСНИК (КОНТРОЛЕР) КОМПАНІЯ \"НОВААГРО ЛІМІТЕД\"- ПОЛУМИСНИЙ СЕРГІЙ ВАЛЕРІЙОВИЧ, 01.07.1976 Р.Н., ПАСПОРТ , УКРАЇНА, 61002, М. ХАРКІВ, КИЇВСЬКІЙ РАЙОН, ВУЛИЦЯ ПОТЕБНІ, БУДИНОК 6, КВАРТИРА 17"
+            }
+          ]
+        },
+        {
+          "date": "2016-07-12",
+          "changes": [
+            {
+              "field": "location",
+              "record": "update",
+              "text": "змінилась адреса",
+              "newValue": "61002, Харківська обл., місто Харків, Київський район ВУЛИЦЯ ЧЕРНИШЕВСЬКА буд. 66",
+              "oldValue": "61002, Харківська обл., місто Харків, Київський район, ВУЛИЦЯ СУМСЬКА, будинок 50"
+            }
+          ]
+        },
+        {
+          "date": "2016-07-01",
+          "changes": [
+            {
+              "field": "ceo_name",
+              "record": "update",
+              "text": "змінився керівник",
+              "newValue": "Полумисний Сергій Валерійович",
+              "oldValue": "Левін Андрій Петрович"
+            }
+          ]
+        }
+      ],
+      "text": "Змін реєстраційної інформації — 7",
+      "type": "history"
+    }
+  ],
+  "financialStatement": [
+    {
+      "year": 2020,
+      "revenue": 68245000,
+      "expenses": 68222400,
+      "profit": 2600,
+      "nonCurrentAssets": 1180244800,
+      "currentAssets": 81260100,
+      "liability": 642533200.0000001,
+      "balance": 1261504900,
+      "sector": "nongovernment"
+    },
+    {
+      "year": 2022,
+      "forms": [
+        {
+          "code": "S0110013",
+          "title": "Баланс та фінансові результати"
+        }
+      ],
+      "revenue": 84393400,
+      "expenses": 160443300,
+      "profit": -76049900,
+      "nonCurrentAssets": 1014002000,
+      "currentAssets": 181638800,
+      "liability": 652566700,
+      "balance": 1195640800,
+      "employees": 32,
+      "buhgalter": "Нетікова Тетяна Леонідівна"
+    },
+    {
+      "year": 2023,
+      "forms": [
+        {
+          "code": "S0110013",
+          "title": "Баланс та фінансові результати"
+        }
+      ],
+      "revenue": 197113000,
+      "expenses": 179167500,
+      "profit": 17945500,
+      "nonCurrentAssets": 968806700,
+      "currentAssets": 301820800,
+      "liability": 760478700,
+      "balance": 1270627500,
+      "employees": 33,
+      "buhgalter": "НЕТІКОВА ТЕТЯНА ЛЕОНІДІВНА"
+    },
+    {
+      "year": 2024,
+      "forms": [
+        {
+          "code": "S0110014",
+          "title": "Баланс та фінансові результати"
+        }
+      ],
+      "revenue": 157977700,
+      "expenses": 155675700,
+      "profit": 2278400,
+      "nonCurrentAssets": 1066012000,
+      "currentAssets": 322790400,
+      "liability": 876792200,
+      "balance": 1388802400,
+      "employees": 34
+    }
+  ],
+  "licenses": {
+    "energyLicenses": {
+      "fullName": "Товариство З Обмеженою Відповідальністю \"Новаагро Україна\"",
+      "activities": "постачання електричної енергії споживачу"
+    }
+  }
+}

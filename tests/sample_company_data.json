@@ -1,0 +1,220 @@
+{
+  "registry": {
+    "code": "21560766",
+    "fullName": "ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ \"НОВААГРО УКРАЇНА\"",
+    "shortName": "ТОВ \"НОВААГРО УКРАЇНА\"",
+    "status": "зареєстровано",
+    "registrationDate": "2003-06-18",
+    "registrationNumber": "1 070 120 0000 002391",
+    "location": "Україна, 61058, Харківська обл., місто Харків, вул. Пушкінська, будинок 25, офіс 301",
+    "country": "Україна",
+    "capital": 5000000,
+    "authorisedCapital": {
+      "value": 5000000,
+      "currency": "UAH"
+    },
+    "email": "info@novaagro.ua",
+    "phones": ["+38(057)-700-12-34", "+38(050)-123-45-67"],
+    "formattedPhones": ["380577001234", "380501234567"],
+    "ceoName": "Іваненко Петро Миколайович",
+    "primaryActivity": "01.11 Вирощування зернових культур (крім рису), бобових культур і насіння олійних культур",
+    "address": {
+      "zip": "61058",
+      "country": "Україна",
+      "address": "Україна, 61058, Харківська обл., місто Харків, вул. Пушкінська, будинок 25, офіс 301",
+      "parts": {
+        "atu": "Харківська обл., місто Харків",
+        "street": "вул. Пушкінська",
+        "house": "25",
+        "num": "301",
+        "atuCode": "63120270010045672",
+        "houseType": "будинок",
+        "numType": "офіс"
+      }
+    },
+    "registration": {
+      "date": "2003-06-18",
+      "recordNumber": "1 070 120 0000 002391",
+      "recordDate": "2003-06-18",
+      "isSeparation": false,
+      "isDivision": false,
+      "isMerge": false,
+      "isTransformation": false
+    },
+    "registrations": [
+      {
+        "name": "ДЕРЖАВНА СЛУЖБА СТАТИСТИКИ УКРАЇНИ",
+        "code": "37507880",
+        "type": "statistic",
+        "startDate": "2003-06-18"
+      },
+      {
+        "name": "ГУ ДПС У ХАРКІВСЬКІЙ ОБЛАСТІ",
+        "code": "43983495",
+        "type": "taxoffice",
+        "description": "Реєстр платників податків",
+        "startDate": "2003-06-20",
+        "startNum": "125523196015"
+      },
+      {
+        "name": "ВІДДІЛ ДВС ІНДУСТРІАЛЬНОГО РАЙОНУ М. ХАРКОВА",
+        "code": "26278325",
+        "type": "dvs",
+        "description": "Єдиний реєстр боржників",
+        "startDate": "2018-04-12"
+      }
+    ],
+    "heads": [
+      {
+        "name": "Іваненко Петро Миколайович",
+        "role": "Директор",
+        "type": "head",
+        "restriction": "Відомості відсутні",
+        "date": "2015-03-20"
+      },
+      {
+        "name": "Сидоренко Олена Вікторівна",
+        "role": "Головний бухгалтер",
+        "type": "signer",
+        "restriction": "Відомості відсутні",
+        "date": "2016-08-01"
+      }
+    ],
+    "beneficiaries": [
+      {
+        "name": "Коваленко Андрій Сергійович",
+        "role": "Кінцевий бенефіціарний власник (контролер)",
+        "amountPercent": 60,
+        "amount": 3000000,
+        "date": "2015-03-20"
+      },
+      {
+        "name": "Мельник Ірина Олександрівна",
+        "role": "Засновник",
+        "amountPercent": 25,
+        "amount": 1250000,
+        "date": "2003-06-18"
+      },
+      {
+        "name": "Бондаренко Олексій Петрович",
+        "role": "Засновник",
+        "amountPercent": 15,
+        "amount": 750000,
+        "date": "2010-11-05"
+      }
+    ],
+    "activities": [
+      {"code": "01.11", "name": "Вирощування зернових культур (крім рису), бобових культур і насіння олійних культур", "isPrimary": true},
+      {"code": "01.13", "name": "Вирощування овочів і баштанних культур, коренеплодів і бульбоплодів", "isPrimary": false},
+      {"code": "01.41", "name": "Розведення великої рогатої худоби молочних порід", "isPrimary": false},
+      {"code": "46.21", "name": "Оптова торгівля зерном, необробленим тютюном, насінням і кормами для тварин", "isPrimary": false},
+      {"code": "68.20", "name": "Надання в оренду й експлуатацію власного чи орендованого нерухомого майна", "isPrimary": false},
+      {"code": "46.90", "name": "Неспеціалізована оптова торгівля", "isPrimary": false},
+      {"code": "01.61", "name": "Допоміжна діяльність у рослинництві", "isPrimary": false}
+    ],
+    "state": 1,
+    "lastDate": "2026-02-05 14:22:11",
+    "objectName": "Єдиний державний реєстр юридичних осіб, фізичних осіб – підприємців та громадських формувань"
+  },
+  "factors": [
+    {
+      "type": "sanction",
+      "status": "active",
+      "text": "Санкції: не знайдено",
+      "icon": "✅",
+      "indicator": "positive",
+      "factorGroup": "sanction",
+      "items": []
+    },
+    {
+      "type": "debt",
+      "status": "active",
+      "text": "Податковий борг: 125 340,50 грн",
+      "icon": "⚠️",
+      "indicator": "warning",
+      "factorGroup": "tax",
+      "items": [
+        {
+          "name": "Податок на додану вартість",
+          "amount": 85240.50,
+          "date": "2025-12-15"
+        },
+        {
+          "name": "Єдиний соціальний внесок",
+          "amount": 40100.00,
+          "date": "2025-11-20"
+        }
+      ]
+    },
+    {
+      "type": "vat",
+      "status": "active",
+      "text": "Платник ПДВ з 01.09.2003",
+      "icon": "✅",
+      "indicator": "positive",
+      "factorGroup": "tax",
+      "pdvCode": "123456789012",
+      "startDate": "2003-09-01"
+    },
+    {
+      "type": "courtCompany",
+      "status": "active",
+      "text": "Судові справи: 12 справ",
+      "icon": "⚠️",
+      "indicator": "warning",
+      "factorGroup": "court",
+      "items": [
+        {"type": "civil", "count": 5, "plaintiff": 3, "defendant": 2},
+        {"type": "arbitrage", "count": 6, "plaintiff": 4, "defendant": 2},
+        {"type": "administrative", "count": 1, "plaintiff": 1, "defendant": 0}
+      ]
+    },
+    {
+      "type": "courtDecision",
+      "status": "active",
+      "text": "Судові рішення: 8 рішень",
+      "icon": "ℹ️",
+      "indicator": "neutral",
+      "factorGroup": "court",
+      "items": [
+        {"type": "civil", "count": 3},
+        {"type": "arbitrage", "count": 4},
+        {"type": "administrative", "count": 1}
+      ]
+    },
+    {
+      "type": "singletax",
+      "status": "inactive",
+      "text": "Не є платником єдиного податку",
+      "icon": "ℹ️",
+      "indicator": "neutral",
+      "factorGroup": "tax"
+    }
+  ],
+  "financialStatement": [
+    {
+      "year": 2024,
+      "revenue": 186500000,
+      "profit": 12300000,
+      "assets": 245000000,
+      "equity": 98000000,
+      "employees": 145
+    },
+    {
+      "year": 2023,
+      "revenue": 172000000,
+      "profit": 9800000,
+      "assets": 228000000,
+      "equity": 85700000,
+      "employees": 138
+    },
+    {
+      "year": 2022,
+      "revenue": 134500000,
+      "profit": -2100000,
+      "assets": 210000000,
+      "equity": 75900000,
+      "employees": 152
+    }
+  ]
+}

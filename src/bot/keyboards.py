@@ -27,10 +27,15 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
     """Головне меню бота"""
     builder = InlineKeyboardBuilder()
     
+    # Основні функції - великі кнопки
+    builder.row(
+        InlineKeyboardButton(text="🔍 Перевірка контрагента", callback_data="menu:contractor")
+    )
     builder.row(
         InlineKeyboardButton(text="🏢 Компанії", callback_data="menu:companies"),
         InlineKeyboardButton(text="⚖️ Справи", callback_data="menu:cases")
     )
+    # Додаткові функції
     builder.row(
         InlineKeyboardButton(text="📊 Статистика", callback_data="menu:stats"),
         InlineKeyboardButton(text="⚙️ Налаштування", callback_data="menu:settings")
@@ -115,6 +120,58 @@ def my_cases_keyboard(page: int = 0, total_pages: int = 1, cases: list = None) -
     
     builder.row(InlineKeyboardButton(text="➕ Додати справу", callback_data="cases:add_case"))
     builder.row(InlineKeyboardButton(text="🔙 Меню справ", callback_data="menu:cases"))
+    
+    return builder.as_markup()
+
+
+def contractor_menu_keyboard() -> InlineKeyboardMarkup:
+    """Меню перевірки контрагента - тільки назад"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="� Назад", callback_data="menu:main")
+    )
+    
+    return builder.as_markup()
+
+
+def contractor_result_keyboard(show_pdf: bool = False) -> InlineKeyboardMarkup:
+    """Клавіатура після результату перевірки"""
+    builder = InlineKeyboardBuilder()
+    
+    if show_pdf:
+        builder.row(
+            InlineKeyboardButton(text="📄 PDF звіт", callback_data="pdf:report")
+        )
+    builder.row(
+        InlineKeyboardButton(text="🔍 Нова перевірка", callback_data="menu:contractor")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🔙 Головне меню", callback_data="menu:main")
+    )
+    
+    return builder.as_markup()
+
+
+def contractor_result_with_refresh_keyboard(refresh_callback: str, is_cached: bool = False, show_pdf: bool = False) -> InlineKeyboardMarkup:
+    """Клавіатура з кнопкою оновлення для результату перевірки"""
+    builder = InlineKeyboardBuilder()
+    
+    if show_pdf:
+        builder.row(
+            InlineKeyboardButton(text="📄 PDF звіт", callback_data="pdf:report")
+        )
+    if is_cached:
+        builder.row(
+            InlineKeyboardButton(text="🔄 Оновити дані", callback_data=refresh_callback)
+        )
+    
+    builder.row(
+        InlineKeyboardButton(text="🔍 Нова перевірка", callback_data="menu:contractor")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🔙 Головне меню", callback_data="menu:main")
+    )
     
     return builder.as_markup()
 
