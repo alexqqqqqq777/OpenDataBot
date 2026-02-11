@@ -1784,8 +1784,8 @@ async def callback_pdf_report(callback: CallbackQuery, state: FSMContext):
     await callback.answer("📄 Генерую PDF...", show_alert=False)
     
     try:
-        # Collect all datasets
-        datasets = list(pdf_data.values())
+        # Collect all datasets (filter out None values)
+        datasets = [v for v in pdf_data.values() if v is not None]
         
         # Title based on type
         titles = {
