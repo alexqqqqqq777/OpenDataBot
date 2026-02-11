@@ -1,3 +1,4 @@
+import asyncio
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command, CommandStart
@@ -1460,10 +1461,22 @@ async def _process_company_check(message: Message, state: FSMContext, code: str)
         parsed_data['query_code'] = code
         parsed_data['cached_at'] = cached_at
         
+        # Fetch Clarity data in parallel (cached)
+        clarity_raw = None
+        try:
+            from src.clients.clarity import ClarityClient
+            clarity_client = ClarityClient()
+            clarity_resp = await clarity_client.get_company(code)
+            if clarity_resp and clarity_resp.get('data'):
+                clarity_raw = clarity_resp['data']
+        except Exception as e:
+            logger.warning(f"Clarity fetch for {code}: {e}")
+        
         await state.update_data(
             company_code=code, company_cached_at=cached_at,
             company_data=parsed_data,
-            pdf_data={'company': data}, pdf_code=code, pdf_type='company'
+            pdf_data={'company': data, 'clarity': clarity_raw},
+            pdf_code=code, pdf_type='company'
         )
         
         summary_text = ContractorFormatter.format_company_summary(parsed_data)
@@ -1471,6 +1484,15 @@ async def _process_company_check(message: Message, state: FSMContext, code: str)
         await message.answer(summary_text, reply_markup=keyboard, parse_mode="HTML")
         
         logger.info(f"User {message.from_user.id} auto-checked company {code}")
+        
+        # Background: deep-check all related companies (with cache)
+        try:
+            from src.services.deep_check import deep_check_related
+            asyncio.create_task(
+                deep_check_related(code, odb_data=data, clarity_data=clarity_raw)
+            )
+        except Exception as e:
+            logger.warning(f"Deep check launch for {code}: {e}")
         
     except Exception as e:
         logger.error(f"Company check error for {code}: {e}")
@@ -2079,9 +2101,22 @@ async def process_contractor_company(message: Message, state: FSMContext):
         parsed_data = CompanyDataParser.parse(data)
         parsed_data['query_code'] = code  # Store for refresh
         parsed_data['cached_at'] = cached_at
+        
+        # Fetch Clarity data (cached)
+        clarity_raw = None
+        try:
+            from src.clients.clarity import ClarityClient
+            clarity_client = ClarityClient()
+            clarity_resp = await clarity_client.get_company(code)
+            if clarity_resp and clarity_resp.get('data'):
+                clarity_raw = clarity_resp['data']
+        except Exception as e:
+            logger.warning(f"Clarity fetch for {code}: {e}")
+        
         await state.update_data(
             company_data=parsed_data,
-            pdf_data={'company': data}, pdf_code=code, pdf_type='company'
+            pdf_data={'company': data, 'clarity': clarity_raw},
+            pdf_code=code, pdf_type='company'
         )
         
         # Show summary with category buttons
@@ -2091,6 +2126,15 @@ async def process_contractor_company(message: Message, state: FSMContext):
         await message.answer(summary_text, reply_markup=keyboard, parse_mode="HTML")
         
         logger.info(f"User {message.from_user.id} checked company {code}")
+        
+        # Background: deep-check all related companies (with cache)
+        try:
+            from src.services.deep_check import deep_check_related
+            asyncio.create_task(
+                deep_check_related(code, odb_data=data, clarity_data=clarity_raw)
+            )
+        except Exception as e:
+            logger.warning(f"Deep check launch for {code}: {e}")
         
     except Exception as e:
         logger.error(f"Contractor check error for {code}: {e}")
