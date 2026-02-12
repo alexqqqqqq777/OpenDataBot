@@ -46,6 +46,7 @@ class ClarityClient:
         "persons": "clarity-persons",
         "used-vehicles": "clarity-used-vehicles",
         "vehicles.list": "clarity-vehicles-list",
+        "relations": "clarity-relations",
     }
 
     def __init__(self):
@@ -298,6 +299,20 @@ class ClarityClient:
             cache_endpoint=self._ENDPOINTS["vehicles.list"],
             cache_key=code,
             url=f"{self.base_url}/vehicles.list/{code}",
+            force_refresh=force_refresh,
+        )
+
+    async def get_relations(
+        self, code: str, force_refresh: bool = False
+    ) -> Optional[Dict]:
+        """
+        edr.relations/{code} — related companies via persons, phones, emails,
+        addresses, founders. Returns full graph in ONE request.
+        """
+        return await self._cached_request(
+            cache_endpoint=self._ENDPOINTS["relations"],
+            cache_key=code,
+            url=f"{self.base_url}/edr.relations/{code}",
             force_refresh=force_refresh,
         )
 

@@ -1461,21 +1461,30 @@ async def _process_company_check(message: Message, state: FSMContext, code: str)
         parsed_data['query_code'] = code
         parsed_data['cached_at'] = cached_at
         
-        # Fetch Clarity data in parallel (cached)
+        # Fetch Clarity data (cached)
         clarity_raw = None
+        vehicles_report = None
         try:
             from src.clients.clarity import ClarityClient
+            from src.services.clarity_adapter import clarity_vehicles_to_report
             clarity_client = ClarityClient()
             clarity_resp = await clarity_client.get_company(code)
             if clarity_resp and clarity_resp.get('data'):
                 clarity_raw = clarity_resp['data']
+            # Vehicles (owned + used)
+            owned_resp = await clarity_client.get_owned_vehicles(code)
+            used_resp = await clarity_client.get_used_vehicles(code)
+            owned_data = owned_resp.get('data') if owned_resp else None
+            used_data = used_resp.get('data') if used_resp else None
+            if owned_data or used_data:
+                vehicles_report = clarity_vehicles_to_report(owned_data, used_data)
         except Exception as e:
             logger.warning(f"Clarity fetch for {code}: {e}")
         
         await state.update_data(
             company_code=code, company_cached_at=cached_at,
             company_data=parsed_data,
-            pdf_data={'company': data, 'clarity': clarity_raw},
+            pdf_data={'company': data, 'clarity': clarity_raw, 'vehicles': vehicles_report},
             pdf_code=code, pdf_type='company'
         )
         
@@ -2104,18 +2113,27 @@ async def process_contractor_company(message: Message, state: FSMContext):
         
         # Fetch Clarity data (cached)
         clarity_raw = None
+        vehicles_report = None
         try:
             from src.clients.clarity import ClarityClient
+            from src.services.clarity_adapter import clarity_vehicles_to_report
             clarity_client = ClarityClient()
             clarity_resp = await clarity_client.get_company(code)
             if clarity_resp and clarity_resp.get('data'):
                 clarity_raw = clarity_resp['data']
+            # Vehicles (owned + used)
+            owned_resp = await clarity_client.get_owned_vehicles(code)
+            used_resp = await clarity_client.get_used_vehicles(code)
+            owned_data = owned_resp.get('data') if owned_resp else None
+            used_data = used_resp.get('data') if used_resp else None
+            if owned_data or used_data:
+                vehicles_report = clarity_vehicles_to_report(owned_data, used_data)
         except Exception as e:
             logger.warning(f"Clarity fetch for {code}: {e}")
         
         await state.update_data(
             company_data=parsed_data,
-            pdf_data={'company': data, 'clarity': clarity_raw},
+            pdf_data={'company': data, 'clarity': clarity_raw, 'vehicles': vehicles_report},
             pdf_code=code, pdf_type='company'
         )
         

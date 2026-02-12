@@ -341,3 +341,64 @@ def clarity_treasury_to_report(raw: dict) -> dict:
         result["_treasury_role"] = "Платник до бюджету"
 
     return result
+
+
+def clarity_vehicles_to_report(
+    owned_raw: dict | None = None,
+    used_raw: dict | None = None,
+) -> dict:
+    """Convert Clarity vehicles responses → tables for PDF report.
+
+    Args:
+        owned_raw: JSON from vehicles.list/{code} (owned vehicles)
+        used_raw:  JSON from edr.info/{code}/used-vehicles
+
+    Returns:
+        dict with 'clarity_owned_vehicles' and/or 'clarity_used_vehicles' tables.
+    """
+    result: dict = {}
+
+    # ── Owned vehicles (vehicles.list) ────────────────────────────────────
+    if owned_raw:
+        vehicles = owned_raw.get("vehicles", [])
+        if vehicles:
+            result["clarity_owned_vehicles"] = [
+                {
+                    "brand": v.get("brand", ""),
+                    "model": v.get("model", ""),
+                    "year": v.get("makeYear", ""),
+                    "kind": v.get("kind", ""),
+                    "color": v.get("color", ""),
+                    "fuel": v.get("fuel", "") or "",
+                    "body": v.get("body", ""),
+                    "purpose": v.get("purpose", ""),
+                    "capacity": v.get("capacity", ""),
+                    "ownWeight": v.get("ownWeight", ""),
+                    "totalWeight": v.get("totalWeight", ""),
+                    "dreg": v.get("dreg", ""),
+                    "operName": (v.get("operName", "") or "")[:60],
+                    "depName": v.get("depName", ""),
+                }
+                for v in vehicles
+            ]
+
+    # ── Used vehicles (edr.info/used-vehicles) ────────────────────────────
+    if used_raw:
+        vehicles = used_raw.get("vehicles", [])
+        if vehicles:
+            result["clarity_used_vehicles"] = [
+                {
+                    "type": v.get("VehicleType", ""),
+                    "model": " ".join(filter(None, [
+                        v.get("VehicleVendor", ""),
+                        v.get("VehicleModel", ""),
+                    ])),
+                    "num": v.get("VehicleNum", ""),
+                    "year": v.get("VehicleYear", "") or "",
+                    "status": v.get("LicenseStatus", "") or "",
+                    "vin": v.get("VINCode", "") or "",
+                }
+                for v in vehicles
+            ]
+
+    return result
