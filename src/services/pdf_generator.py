@@ -135,6 +135,22 @@ _LABELS: dict[str, str] = {
     "_fin_accountant": "Бухгалтер (Clarity)",
     "_fin_personnel": "Працівників (Clarity)",
     "_fin_report_date": "Дата подання звіту",
+    # Clarity raw fields
+    "edr": "ЄДРПОУ",
+    "contact": "Контактна особа",
+    "isTenderer": "Учасник Prozorro",
+    "isBuyer": "Замовник Prozorro",
+    "history": "Змін в історії",
+    "licenses_count": "Ліцензій",
+    "available_finances": "Фін. звітність (періоди)",
+    "tenderer_stats": "Статистика учасника",
+    "buyer_stats": "Статистика замовника",
+    "treasury_stats": "Статистика Казначейства",
+    "non_profit": "Неприбуткова організація",
+    "single_tax": "Єдиний податок",
+    "vat": "ПДВ",
+    "tax_debt": "Податковий борг",
+    "owned": "Власність",
     "prevRegistrationEndTerm": "Попередня реєстрація",
     "foundingDocumentType": "Установчий документ",
     "executivePower": "Орган управління",
@@ -203,6 +219,14 @@ _SKIP_FIELDS = frozenset({
     "foundingDocumentType", "primaryActivityKind",
     "executivePower", "forDevelopers",
     "person",
+    # Clarity technical / redundant (already shown via adapter)
+    "edr_data", "address_parts", "opf", "opf_name",
+    "Updated", "updated", "stats", "paginator",
+    "entity", "entity_kind", "entity_kind_name",
+    "business_scale", "business_scale_name",
+    "treasure_stats", "tenderer_stats", "buyer_stats",
+    "available_finances", "tax_debt", "vat", "single_tax",
+    "non_profit", "owned", "edr",
 })
 
 # Positive-status keywords (lowercase)
@@ -788,6 +812,13 @@ def _fmt(key: str, value: object) -> str:
         try:
             return f"{int(value):,} грн".replace(",", " ")
         except (ValueError, TypeError):
+            pass
+    # Unix timestamps → human date
+    if key in ("updated", "Updated") and isinstance(value, (int, float)) and value > 1_000_000_000:
+        try:
+            from datetime import datetime as _dt
+            return _dt.fromtimestamp(int(value)).strftime("%d.%m.%Y %H:%M")
+        except (ValueError, TypeError, OSError):
             pass
     return str(value) if str(value) else "\u2014"
 
