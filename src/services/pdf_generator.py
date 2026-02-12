@@ -136,6 +136,8 @@ _LABELS: dict[str, str] = {
     "_fin_personnel": "Працівників (Clarity)",
     "_fin_report_date": "Дата подання звіту",
     # Clarity raw fields
+    "updated": "Дата оновлення",
+    "Updated": "Дата оновлення",
     "edr": "ЄДРПОУ",
     "contact": "Контактна особа",
     "isTenderer": "Учасник Prozorro",
@@ -221,7 +223,7 @@ _SKIP_FIELDS = frozenset({
     "person",
     # Clarity technical / redundant (already shown via adapter)
     "edr_data", "address_parts", "opf", "opf_name",
-    "Updated", "updated", "stats", "paginator",
+    "stats", "paginator",
     "entity", "entity_kind", "entity_kind_name",
     "business_scale", "business_scale_name",
     "treasure_stats", "tenderer_stats", "buyer_stats",
