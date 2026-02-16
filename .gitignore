@@ -2,6 +2,7 @@
 .env
 .env.local
 DEPLOY_PRIVATE.md
+DEPLOY_KEYS.env
 venv/
 __pycache__/
 *.py[cod]
