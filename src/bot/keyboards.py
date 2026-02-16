@@ -3,15 +3,26 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from typing import List, Optional
 
 
-def my_subs_keyboard(page: int = 0, total_pages: int = 1) -> InlineKeyboardMarkup:
-    """Клавіатура для списку підписок з пагінацією"""
+def my_subs_keyboard(page: int = 0, total_pages: int = 1, subs_on_page: list = None) -> InlineKeyboardMarkup:
+    """Клавіатура для списку підписок з кнопками відписки та пагінацією"""
     builder = InlineKeyboardBuilder()
+    
+    # Кнопки відписки для кожної компанії на сторінці
+    if subs_on_page:
+        for sub in subs_on_page:
+            builder.row(
+                InlineKeyboardButton(
+                    text=f"❌ {sub.edrpou}",
+                    callback_data=f"unsub:company:{sub.edrpou}"
+                )
+            )
     
     # Pagination buttons
     nav_buttons = []
     if page > 0:
         nav_buttons.append(InlineKeyboardButton(text="◀️", callback_data=f"mysubs:page:{page-1}"))
-    nav_buttons.append(InlineKeyboardButton(text=f"{page+1}/{total_pages}", callback_data="mysubs:info"))
+    if total_pages > 1:
+        nav_buttons.append(InlineKeyboardButton(text=f"{page+1}/{total_pages}", callback_data="mysubs:info"))
     if page < total_pages - 1:
         nav_buttons.append(InlineKeyboardButton(text="▶️", callback_data=f"mysubs:page:{page+1}"))
     
@@ -23,7 +34,7 @@ def my_subs_keyboard(page: int = 0, total_pages: int = 1) -> InlineKeyboardMarku
     return builder.as_markup()
 
 
-def main_menu_keyboard() -> InlineKeyboardMarkup:
+def main_menu_keyboard(is_admin: bool = False) -> InlineKeyboardMarkup:
     """Головне меню бота"""
     builder = InlineKeyboardBuilder()
     
@@ -40,26 +51,40 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="📊 Статистика", callback_data="menu:stats"),
         InlineKeyboardButton(text="⚙️ Налаштування", callback_data="menu:settings")
     )
-    builder.row(
-        InlineKeyboardButton(text="🔄 Синхронізація", callback_data="menu:sync"),
-        InlineKeyboardButton(text="ℹ️ Допомога", callback_data="menu:help")
-    )
+    if is_admin:
+        builder.row(
+            InlineKeyboardButton(text="🔄 Синхронізація", callback_data="menu:sync"),
+            InlineKeyboardButton(text="ℹ️ Допомога", callback_data="menu:help")
+        )
+    else:
+        builder.row(
+            InlineKeyboardButton(text="ℹ️ Допомога", callback_data="menu:help")
+        )
     
     return builder.as_markup()
 
 
-def companies_menu_keyboard() -> InlineKeyboardMarkup:
+def companies_menu_keyboard(is_admin: bool = False) -> InlineKeyboardMarkup:
     """Меню управління компаніями"""
     builder = InlineKeyboardBuilder()
     
-    builder.row(
-        InlineKeyboardButton(text="➕ Додати компанію", callback_data="company:add"),
-        InlineKeyboardButton(text="� Мої підписки", callback_data="company:my_subs")
-    )
-    builder.row(
-        InlineKeyboardButton(text="🌐 Всі компанії", callback_data="company:list"),
-        InlineKeyboardButton(text="📡 Статус сервісу", callback_data="company:odb_status")
-    )
+    if is_admin:
+        builder.row(
+            InlineKeyboardButton(text="➕ Додати компанію", callback_data="company:add"),
+            InlineKeyboardButton(text="🔔 Мої підписки", callback_data="company:my_subs")
+        )
+        builder.row(
+            InlineKeyboardButton(text="🌐 Всі компанії", callback_data="company:list"),
+            InlineKeyboardButton(text="📡 Статус сервісу", callback_data="company:odb_status")
+        )
+    else:
+        builder.row(
+            InlineKeyboardButton(text="🔔 Мої підписки", callback_data="company:my_subs")
+        )
+        builder.row(
+            InlineKeyboardButton(text="➕ Підписатися на компанію", callback_data="company:user_subscribe")
+        )
+    
     builder.row(
         InlineKeyboardButton(text="🔙 Головне меню", callback_data="menu:main")
     )
@@ -288,6 +313,18 @@ def confirm_delete_keyboard(edrpou: str) -> InlineKeyboardMarkup:
     builder.row(
         InlineKeyboardButton(text="✅ Так, видалити", callback_data=f"confirm:delete:{edrpou}"),
         InlineKeyboardButton(text="❌ Скасувати", callback_data=f"company:view:{edrpou}")
+    )
+    
+    return builder.as_markup()
+
+
+def confirm_unsub_keyboard(edrpou: str) -> InlineKeyboardMarkup:
+    """Підтвердження відписки"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="✅ Так, відписатися", callback_data=f"confirm:unsub:{edrpou}"),
+        InlineKeyboardButton(text="❌ Скасувати", callback_data="company:my_subs")
     )
     
     return builder.as_markup()

@@ -14,9 +14,10 @@ from src.clients import OpenDataBotClient, WorksectionClient
 from src.bot.keyboards import (
     main_menu_keyboard, companies_menu_keyboard, cases_menu_keyboard,
     stats_keyboard, settings_keyboard, sync_keyboard,
-    company_actions_keyboard, confirm_delete_keyboard, back_to_main_keyboard,
-    cancel_keyboard, pagination_keyboard, threat_level_filter_keyboard,
-    my_subs_keyboard, my_cases_keyboard, contractor_menu_keyboard, contractor_result_keyboard
+    company_actions_keyboard, confirm_delete_keyboard, confirm_unsub_keyboard,
+    back_to_main_keyboard, cancel_keyboard, pagination_keyboard,
+    threat_level_filter_keyboard, my_subs_keyboard, my_cases_keyboard,
+    contractor_menu_keyboard, contractor_result_keyboard
 )
 from src.services.contractor_formatter import ContractorFormatter, PersonDataParser, CompanyDataParser
 from src.utils import normalize_case_number
@@ -43,6 +44,15 @@ class SearchStates(StatesGroup):
 class AddCaseStates(StatesGroup):
     waiting_for_case_number = State()
     waiting_for_case_name = State()
+
+
+class UserSubscribeStates(StatesGroup):
+    waiting_for_edrpou = State()
+
+
+def _is_admin(user_id: int) -> bool:
+    """Check if user is admin"""
+    return user_id in settings.admin_ids
 
 
 class ContractorCheckStates(StatesGroup):
@@ -110,7 +120,7 @@ async def cmd_start(message: Message):
 
 Оберіть розділ:
 """
-    await message.answer(text, reply_markup=main_menu_keyboard(), parse_mode="HTML")
+    await message.answer(text, reply_markup=main_menu_keyboard(is_admin=_is_admin(message.from_user.id)), parse_mode="HTML")
 
 
 @router.message(Command("menu"))
@@ -118,7 +128,7 @@ async def cmd_menu(message: Message):
     """Показати головне меню"""
     await message.answer(
         "🏠 <b>Головне меню</b>\n\nОберіть розділ:",
-        reply_markup=main_menu_keyboard(),
+        reply_markup=main_menu_keyboard(is_admin=_is_admin(message.from_user.id)),
         parse_mode="HTML"
     )
 
@@ -129,7 +139,7 @@ async def callback_main_menu(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.edit_text(
         "🏠 <b>Головне меню</b>\n\nОберіть розділ:",
-        reply_markup=main_menu_keyboard(),
+        reply_markup=main_menu_keyboard(is_admin=_is_admin(callback.from_user.id)),
         parse_mode="HTML"
     )
     await callback.answer()
@@ -141,7 +151,7 @@ async def callback_cancel(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.edit_text(
         "❌ Дію скасовано.\n\n🏠 <b>Головне меню</b>",
-        reply_markup=main_menu_keyboard(),
+        reply_markup=main_menu_keyboard(is_admin=_is_admin(callback.from_user.id)),
         parse_mode="HTML"
     )
     await callback.answer()
@@ -191,10 +201,11 @@ async def cmd_help(event: Message | CallbackQuery):
 @router.callback_query(F.data == "menu:companies")
 async def callback_companies_menu(callback: CallbackQuery):
     """Меню компаній"""
+    admin = _is_admin(callback.from_user.id)
     await callback.message.edit_text(
         "🏢 <b>Управління компаніями</b>\n\n"
         "Додавайте компанії для моніторингу судових справ за ЄДРПОУ.",
-        reply_markup=companies_menu_keyboard(),
+        reply_markup=companies_menu_keyboard(is_admin=admin),
         parse_mode="HTML"
     )
     await callback.answer()
@@ -202,7 +213,10 @@ async def callback_companies_menu(callback: CallbackQuery):
 
 @router.callback_query(F.data == "company:add")
 async def callback_add_company_start(callback: CallbackQuery, state: FSMContext):
-    """Початок додавання компанії"""
+    """Початок додавання компанії (тільки адмін)"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("⛔ Доступно тільки адміністратору", show_alert=True)
+        return
     await state.set_state(AddCompanyStates.waiting_for_edrpou)
     await callback.message.edit_text(
         "➕ <b>Додавання компанії</b>\n\n"
@@ -332,7 +346,11 @@ async def process_company_name(message: Message, state: FSMContext):
 
 @router.message(Command("add"))
 async def cmd_add_company(message: Message, state: FSMContext):
-    """Швидке додавання компанії"""
+    """Швидке додавання компанії (тільки адмін)"""
+    if not _is_admin(message.from_user.id):
+        await message.answer("⛔ Додавання компаній доступне тільки адміністратору.")
+        return
+    
     args = message.text.split(maxsplit=2)
     
     if len(args) < 2:
@@ -489,18 +507,140 @@ async def show_my_subs_page(callback: CallbackQuery, page: int = 0):
             name = company.company_name if company and company.company_name else "—"
             text += f"<code>{sub.edrpou}</code> {name}\n"
         
+        text += "\n<i>Натисніть ❌ щоб відписатися від компанії</i>"
+        
         await callback.message.edit_text(
             text,
-            reply_markup=my_subs_keyboard(page, total_pages),
+            reply_markup=my_subs_keyboard(page, total_pages, subs_on_page=page_subs),
             parse_mode="HTML"
         )
     
     await callback.answer()
 
 
+# === User Subscribe / Unsubscribe ===
+
+@router.callback_query(F.data == "company:user_subscribe")
+async def callback_user_subscribe_start(callback: CallbackQuery, state: FSMContext):
+    """Користувач хоче підписатися на компанію"""
+    await state.set_state(UserSubscribeStates.waiting_for_edrpou)
+    await callback.message.edit_text(
+        "🔔 <b>Підписка на компанію</b>\n\n"
+        "Введіть ЄДРПОУ компанії (8 цифр).\n"
+        "Компанія має вже бути на моніторингу.\n\n"
+        "<i>Приклад: 12345678</i>",
+        reply_markup=cancel_keyboard(),
+        parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@router.message(UserSubscribeStates.waiting_for_edrpou)
+async def process_user_subscribe(message: Message, state: FSMContext):
+    """Обробка ЄДРПОУ для підписки користувача"""
+    edrpou = message.text.strip()
+    
+    if not validate_edrpou(edrpou):
+        await message.answer(
+            "❌ <b>Некоректний ЄДРПОУ</b>\n\nЄДРПОУ має містити 8 цифр.\nСпробуйте ще раз:",
+            reply_markup=cancel_keyboard(),
+            parse_mode="HTML"
+        )
+        return
+    
+    edrpou = format_edrpou(edrpou)
+    
+    async with AsyncSessionLocal() as session:
+        company_repo = CompanyRepository(session)
+        user_sub_repo = UserSubscriptionRepository(session)
+        
+        company = await company_repo.get_company(edrpou)
+        
+        if not company:
+            await message.answer(
+                f"❌ <b>Компанія <code>{edrpou}</code> не на моніторингу</b>\n\n"
+                "Зверніться до адміністратора для додавання компанії.",
+                reply_markup=back_to_main_keyboard(),
+                parse_mode="HTML"
+            )
+            await state.clear()
+            return
+        
+        existing = await user_sub_repo.get_subscription(message.from_user.id, edrpou)
+        if existing and existing.is_active:
+            await message.answer(
+                f"ℹ️ Ви вже підписані на <code>{edrpou}</code>",
+                reply_markup=back_to_main_keyboard(),
+                parse_mode="HTML"
+            )
+        else:
+            await user_sub_repo.subscribe(message.from_user.id, edrpou)
+            name = company.company_name or "—"
+            await message.answer(
+                f"✅ <b>Підписку додано!</b>\n\n"
+                f"├ ЄДРПОУ: <code>{edrpou}</code>\n"
+                f"├ Назва: {name}\n"
+                f"└ 🔔 Сповіщення: увімкнено",
+                reply_markup=back_to_main_keyboard(),
+                parse_mode="HTML"
+            )
+            logger.info(f"User {message.from_user.id} subscribed to {edrpou}")
+    
+    await state.clear()
+
+
+@router.callback_query(F.data.startswith("unsub:company:"))
+async def callback_unsub_company(callback: CallbackQuery):
+    """Підтвердження відписки від компанії"""
+    edrpou = callback.data.split(":")[2]
+    
+    async with AsyncSessionLocal() as session:
+        company_repo = CompanyRepository(session)
+        company = await company_repo.get_company(edrpou)
+        name = company.company_name if company and company.company_name else edrpou
+    
+    await callback.message.edit_text(
+        f"⚠️ <b>Відписатися від компанії?</b>\n\n"
+        f"ЄДРПОУ: <code>{edrpou}</code>\n"
+        f"Назва: {name}\n\n"
+        "Ви більше не будете отримувати сповіщення про судові справи цієї компанії.",
+        reply_markup=confirm_unsub_keyboard(edrpou),
+        parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("confirm:unsub:"))
+async def callback_confirm_unsub(callback: CallbackQuery):
+    """Підтвердження відписки"""
+    edrpou = callback.data.split(":")[2]
+    
+    async with AsyncSessionLocal() as session:
+        user_sub_repo = UserSubscriptionRepository(session)
+        success = await user_sub_repo.unsubscribe(callback.from_user.id, edrpou)
+        
+        if success:
+            await callback.message.edit_text(
+                f"✅ Ви відписалися від <code>{edrpou}</code>.",
+                reply_markup=back_to_main_keyboard(),
+                parse_mode="HTML"
+            )
+            logger.info(f"User {callback.from_user.id} unsubscribed from {edrpou}")
+        else:
+            await callback.message.edit_text(
+                f"❌ Підписку на <code>{edrpou}</code> не знайдено.",
+                reply_markup=back_to_main_keyboard(),
+                parse_mode="HTML"
+            )
+    await callback.answer()
+
+
 @router.callback_query(F.data == "company:odb_status")
 async def callback_odb_status(callback: CallbackQuery):
-    """Статус сервісу OpenDataBot"""
+    """Статус сервісу OpenDataBot (тільки адмін)"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("⛔ Доступно тільки адміністратору", show_alert=True)
+        return
     await callback.message.edit_text("🔄 Перевіряю...", parse_mode="HTML")
     
     try:
@@ -542,14 +682,14 @@ async def callback_odb_status(callback: CallbackQuery):
         
         await callback.message.edit_text(
             text,
-            reply_markup=companies_menu_keyboard(),
+            reply_markup=companies_menu_keyboard(is_admin=True),
             parse_mode="HTML"
         )
     except Exception as e:
         logger.error(f"ODB status error: {e}")
         await callback.message.edit_text(
             f"📡 <b>Статус сервісу</b>\n\n❌ Помилка: <code>{str(e)[:60]}</code>",
-            reply_markup=companies_menu_keyboard(),
+            reply_markup=companies_menu_keyboard(is_admin=True),
             parse_mode="HTML"
         )
     
@@ -558,7 +698,10 @@ async def callback_odb_status(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("company:delete:"))
 async def callback_delete_company(callback: CallbackQuery):
-    """Підтвердження видалення"""
+    """Підтвердження видалення (тільки адмін)"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("⛔ Доступно тільки адміністратору", show_alert=True)
+        return
     edrpou = callback.data.split(":")[2]
     await callback.message.edit_text(
         f"⚠️ <b>Видалити компанію?</b>\n\n"
@@ -572,7 +715,10 @@ async def callback_delete_company(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("confirm:delete:"))
 async def callback_confirm_delete(callback: CallbackQuery):
-    """Підтвердження видалення компанії"""
+    """Підтвердження видалення компанії (тільки адмін)"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("⛔ Доступно тільки адміністратору", show_alert=True)
+        return
     edrpou = callback.data.split(":")[2]
     
     async with AsyncSessionLocal() as session:
@@ -597,7 +743,10 @@ async def callback_confirm_delete(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("company:pause:"))
 async def callback_pause_company(callback: CallbackQuery):
-    """Призупинити моніторинг"""
+    """Призупинити моніторинг (тільки адмін)"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("⛔ Доступно тільки адміністратору", show_alert=True)
+        return
     edrpou = callback.data.split(":")[2]
     
     async with AsyncSessionLocal() as session:
@@ -614,7 +763,10 @@ async def callback_pause_company(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("company:resume:"))
 async def callback_resume_company(callback: CallbackQuery):
-    """Відновити моніторинг"""
+    """Відновити моніторинг (тільки адмін)"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("⛔ Доступно тільки адміністратору", show_alert=True)
+        return
     edrpou = callback.data.split(":")[2]
     
     async with AsyncSessionLocal() as session:
@@ -883,7 +1035,10 @@ async def callback_schedule_info(callback: CallbackQuery):
 
 @router.callback_query(F.data == "menu:sync")
 async def callback_sync_menu(callback: CallbackQuery):
-    """Меню синхронізації"""
+    """Меню синхронізації (тільки адмін)"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("⛔ Доступно тільки адміністратору", show_alert=True)
+        return
     await callback.message.edit_text(
         "🔄 <b>Синхронізація</b>\n\n"
         "Запустіть синхронізацію вручну.",
@@ -895,7 +1050,10 @@ async def callback_sync_menu(callback: CallbackQuery):
 
 @router.callback_query(F.data == "sync:worksection")
 async def callback_sync_worksection(callback: CallbackQuery):
-    """Синхронізація Worksection"""
+    """Синхронізація Worksection (тільки адмін)"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("⛔ Доступно тільки адміністратору", show_alert=True)
+        return
     from src.services.worksection_sync import sync_worksection_cases, is_gist_mode
     
     mode = "Gist 🔒" if is_gist_mode() else "API"
@@ -922,7 +1080,10 @@ async def callback_sync_worksection(callback: CallbackQuery):
 
 @router.callback_query(F.data == "sync:opendatabot")
 async def callback_sync_opendatabot(callback: CallbackQuery):
-    """Перевірка OpenDataBot"""
+    """Перевірка OpenDataBot (тільки адмін)"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("⛔ Доступно тільки адміністратору", show_alert=True)
+        return
     from src.services.monitoring import run_monitoring_cycle
     
     await callback.message.edit_text("🔄 Перевіряю OpenDataBot...", parse_mode="HTML")
@@ -947,7 +1108,10 @@ async def callback_sync_opendatabot(callback: CallbackQuery):
 
 @router.callback_query(F.data == "sync:full")
 async def callback_sync_full(callback: CallbackQuery):
-    """Повна синхронізація"""
+    """Повна синхронізація (тільки адмін)"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("⛔ Доступно тільки адміністратору", show_alert=True)
+        return
     from src.services.worksection_sync import sync_worksection_cases
     from src.services.monitoring import run_monitoring_cycle
     
@@ -985,7 +1149,10 @@ async def callback_sync_full(callback: CallbackQuery):
 
 @router.message(Command("test"))
 async def cmd_test(message: Message):
-    """Тест підключень"""
+    """Тест підключень (тільки адмін)"""
+    if not _is_admin(message.from_user.id):
+        await message.answer("⛔ Доступно тільки адміністратору.")
+        return
     await message.answer("🔄 Перевіряю підключення...", reply_markup=back_to_main_keyboard())
     
     results = []
