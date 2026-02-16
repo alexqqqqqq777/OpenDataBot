@@ -4,16 +4,19 @@ from typing import List, Optional
 
 
 def my_subs_keyboard(page: int = 0, total_pages: int = 1, subs_on_page: list = None) -> InlineKeyboardMarkup:
-    """Клавіатура для списку підписок з кнопками відписки та пагінацією"""
+    """Клавіатура для списку підписок з кнопками відписки та пагінацією.
+    subs_on_page: list of (edrpou, company_name) tuples"""
     builder = InlineKeyboardBuilder()
     
     # Кнопки відписки для кожної компанії на сторінці
     if subs_on_page:
-        for sub in subs_on_page:
+        for edrpou, name in subs_on_page:
+            # Скорочуємо назву щоб вмістити в кнопку
+            short_name = name[:28] + "…" if len(name) > 29 else name
             builder.row(
                 InlineKeyboardButton(
-                    text=f"❌ {sub.edrpou}",
-                    callback_data=f"unsub:company:{sub.edrpou}"
+                    text=f"❌ {short_name} ({edrpou})",
+                    callback_data=f"unsub:company:{edrpou}"
                 )
             )
     

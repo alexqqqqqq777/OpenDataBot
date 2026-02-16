@@ -502,16 +502,18 @@ async def show_my_subs_page(callback: CallbackQuery, page: int = 0):
         
         text = f"🔔 <b>Мої підписки</b> ({total})\n\n"
         
+        subs_data = []  # (edrpou, name) for keyboard
         for sub in page_subs:
             company = await company_repo.get_company(sub.edrpou)
             name = company.company_name if company and company.company_name else "—"
             text += f"<code>{sub.edrpou}</code> {name}\n"
+            subs_data.append((sub.edrpou, name))
         
-        text += "\n<i>Натисніть ❌ щоб відписатися від компанії</i>"
+        text += "\n<i>Натисніть ❌ щоб відписатися</i>"
         
         await callback.message.edit_text(
             text,
-            reply_markup=my_subs_keyboard(page, total_pages, subs_on_page=page_subs),
+            reply_markup=my_subs_keyboard(page, total_pages, subs_on_page=subs_data),
             parse_mode="HTML"
         )
     
