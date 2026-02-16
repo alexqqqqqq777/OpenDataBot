@@ -61,7 +61,7 @@ INITIAL_RUN_MODE=index_only  # index_only | notify_all
 
 # API Keys
 OPENDATABOT_API_KEY=<будет предоставлен>
-WORKSECTION_API_KEY=962f86852377d3b3a64c117b795dc172
+WORKSECTION_API_KEY=REDACTED
 WORKSECTION_ACCOUNT=kraiz
 TELEGRAM_BOT_TOKEN=<...>
 TELEGRAM_CHAT_ID=<...>
@@ -346,7 +346,7 @@ volumes:
 
 ## ЧТО НУЖНО ДЛЯ ЗАПУСКА
 
-1. ✅ Worksection API Key: `962f86852377d3b3a64c117b795dc172`
+1. ✅ Worksection API Key: `REDACTED`
 2. ⏳ OpenDataBot API Key: ждём
 3. ⏳ Telegram Bot Token + Chat ID
 4. ⏳ Список ЕДРПОУ для мониторинга

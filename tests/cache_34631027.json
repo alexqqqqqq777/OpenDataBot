@@ -260,7 +260,7 @@
       "factorGroup": "court",
       "icon": "⚠️",
       "indicator": "warning",
-      "link": "https://opendatabot.com/api/v2/court?company_code=34631027&apiKey=IBjBf8zssa",
+      "link": "https://opendatabot.com/api/v2/court?company_code=34631027&apiKey=REDACTED_API_KEY",
       "text": "Судовий реєстр — 481 рішення",
       "type": "courtDecision"
     },
@@ -274,35 +274,35 @@
           "type": "civil",
           "count": 35,
           "text": "Цивільні",
-          "link": "https://opendatabot.com/api/v2/company-courts/civil?code=34631027&apiKey=IBjBf8zssa",
+          "link": "https://opendatabot.com/api/v2/company-courts/civil?code=34631027&apiKey=REDACTED_API_KEY",
           "liveCount": 1
         },
         {
           "type": "criminal",
           "count": 17,
           "text": "Криминальні",
-          "link": "https://opendatabot.com/api/v2/company-courts/criminal?code=34631027&apiKey=IBjBf8zssa",
+          "link": "https://opendatabot.com/api/v2/company-courts/criminal?code=34631027&apiKey=REDACTED_API_KEY",
           "liveCount": 0
         },
         {
           "type": "arbitrage",
           "count": 65,
           "text": "Господарські",
-          "link": "https://opendatabot.com/api/v2/company-courts/arbitrage?code=34631027&apiKey=IBjBf8zssa",
+          "link": "https://opendatabot.com/api/v2/company-courts/arbitrage?code=34631027&apiKey=REDACTED_API_KEY",
           "liveCount": 4
         },
         {
           "type": "administrative",
           "count": 19,
           "text": "Адміністративні",
-          "link": "https://opendatabot.com/api/v2/company-courts/administrative?code=34631027&apiKey=IBjBf8zssa",
+          "link": "https://opendatabot.com/api/v2/company-courts/administrative?code=34631027&apiKey=REDACTED_API_KEY",
           "liveCount": 0
         },
         {
           "type": "undefined",
           "count": 1,
           "text": "Категорію не визначено",
-          "link": "https://opendatabot.com/api/v2/company-courts/undefined?code=34631027&apiKey=IBjBf8zssa",
+          "link": "https://opendatabot.com/api/v2/company-courts/undefined?code=34631027&apiKey=REDACTED_API_KEY",
           "liveCount": 0
         }
       ],

@@ -225,7 +225,7 @@
       "factorGroup": "court",
       "icon": "⚠️",
       "indicator": "warning",
-      "link": "https://opendatabot.com/api/v2/court?company_code=43207029&apiKey=IBjBf8zssa",
+      "link": "https://opendatabot.com/api/v2/court?company_code=43207029&apiKey=REDACTED_API_KEY",
       "text": "Судовий реєстр — 1 рішення",
       "type": "courtDecision"
     },
@@ -239,7 +239,7 @@
           "type": "administrative",
           "count": 1,
           "text": "Адміністративні",
-          "link": "https://opendatabot.com/api/v2/company-courts/administrative?code=43207029&apiKey=IBjBf8zssa",
+          "link": "https://opendatabot.com/api/v2/company-courts/administrative?code=43207029&apiKey=REDACTED_API_KEY",
           "liveCount": 0
         }
       ],

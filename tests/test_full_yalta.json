@@ -67,14 +67,14 @@
     },
     {
       "count": 4, "factorGroup": "court", "icon": "⚠️", "indicator": "warning",
-      "link": "https://opendatabot.com/api/v2/court?company_code=30993572&apiKey=IBjBf8zssa",
+      "link": "https://opendatabot.com/api/v2/court?company_code=30993572&apiKey=REDACTED_API_KEY",
       "text": "Судовий реєстр — 4 рішення", "type": "courtDecision"
     },
     {
       "count": 1, "factorGroup": "court", "icon": "⚠️", "indicator": "warning",
       "items": [
         {"type": "arbitrage", "count": 1, "text": "Господарські",
-         "link": "https://opendatabot.com/api/v2/company-courts/arbitrage?code=30993572&apiKey=IBjBf8zssa",
+         "link": "https://opendatabot.com/api/v2/company-courts/arbitrage?code=30993572&apiKey=REDACTED_API_KEY",
          "liveCount": 0}
       ],
       "text": "Судові процеси компанії", "type": "courtCompany"
