@@ -189,9 +189,7 @@ sudo systemctl status opendatabot
 | `OPENDATABOT_BASE_URL` | Base URL OpenDataBot API | `https://opendatabot.com/api/v3` |
 | `CLARITY_BASE_URL` | Base URL Clarity API | `https://clarity-project.info/api` |
 | `TELEGRAM_ADMIN_IDS` | Telegram user ID адмінів (через кому) | _(порожньо)_ |
-| `WORKSECTION_API_KEY` | API ключ Worksection | _(порожньо)_ |
-| `WORKSECTION_ACCOUNT` | Назва акаунту Worksection | _(порожньо)_ |
-| `WORKSECTION_GIST_ID` | GitHub Gist ID для синхронізації WS справ | _(порожньо)_ |
+| `WORKSECTION_GIST_ID` | GitHub Gist ID для синхронізації справ з Worksection | _(порожньо)_ |
 | `OPENDATABOT_CHECK_HOURS` | Години перевірки моніторингу (UTC) | `8,20` |
 | `WORKSECTION_SYNC_HOURS` | Години синхронізації WS (UTC) | `7,19` |
 | `INITIAL_RUN_MODE` | Режим першого запуску | `index_only` |
