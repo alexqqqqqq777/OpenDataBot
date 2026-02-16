@@ -120,17 +120,30 @@ def cases_menu_keyboard() -> InlineKeyboardMarkup:
 
 
 def my_cases_keyboard(page: int = 0, total_pages: int = 1, cases: list = None) -> InlineKeyboardMarkup:
-    """Клавіатура для списку моніторингу справ з кнопками видалення"""
+    """Клавіатура для списку моніторингу справ з кнопками видалення.
+    cases: list of CaseSubscription objects or (case_number, case_name) tuples"""
     builder = InlineKeyboardBuilder()
     
     # Кнопки видалення для кожної справи на сторінці
     if cases:
         for c in cases:
-            short_num = c.case_number[-12:] if len(c.case_number) > 12 else c.case_number
+            # Підтримка і об'єктів, і кортежів
+            if hasattr(c, 'case_number'):
+                num = c.case_number
+                name = c.case_name
+            else:
+                num, name = c[0], c[1] if len(c) > 1 else None
+            
+            if name:
+                short_name = name[:20] + "…" if len(name) > 21 else name
+                btn_text = f"❌ {num} — {short_name}"
+            else:
+                btn_text = f"❌ {num}"
+            
             builder.row(
                 InlineKeyboardButton(
-                    text=f"❌ {short_num}", 
-                    callback_data=f"case:unsub:{c.case_number}"
+                    text=btn_text,
+                    callback_data=f"case:unsub:{num}"
                 )
             )
     
@@ -148,6 +161,18 @@ def my_cases_keyboard(page: int = 0, total_pages: int = 1, cases: list = None) -
     
     builder.row(InlineKeyboardButton(text="➕ Додати справу", callback_data="cases:add_case"))
     builder.row(InlineKeyboardButton(text="🔙 Меню справ", callback_data="menu:cases"))
+    
+    return builder.as_markup()
+
+
+def confirm_case_unsub_keyboard(case_number: str) -> InlineKeyboardMarkup:
+    """Підтвердження відписки від справи"""
+    builder = InlineKeyboardBuilder()
+    
+    builder.row(
+        InlineKeyboardButton(text="✅ Так, видалити", callback_data=f"confirm:caseunsub:{case_number}"),
+        InlineKeyboardButton(text="❌ Скасувати", callback_data="cases:my_monitored")
+    )
     
     return builder.as_markup()
 

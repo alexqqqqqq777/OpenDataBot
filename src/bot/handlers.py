@@ -15,9 +15,10 @@ from src.bot.keyboards import (
     main_menu_keyboard, companies_menu_keyboard, cases_menu_keyboard,
     stats_keyboard, settings_keyboard, sync_keyboard,
     company_actions_keyboard, confirm_delete_keyboard, confirm_unsub_keyboard,
-    admin_company_list_keyboard, back_to_main_keyboard, cancel_keyboard,
-    pagination_keyboard, threat_level_filter_keyboard, my_subs_keyboard,
-    my_cases_keyboard, contractor_menu_keyboard, contractor_result_keyboard
+    confirm_case_unsub_keyboard, admin_company_list_keyboard,
+    back_to_main_keyboard, cancel_keyboard, pagination_keyboard,
+    threat_level_filter_keyboard, my_subs_keyboard, my_cases_keyboard,
+    contractor_menu_keyboard, contractor_result_keyboard
 )
 from src.services.contractor_formatter import ContractorFormatter, PersonDataParser, CompanyDataParser
 from src.utils import normalize_case_number
@@ -1445,41 +1446,43 @@ async def process_case_name(message: Message, state: FSMContext):
 
 @router.callback_query(F.data.startswith("case:unsub:"))
 async def callback_unsubscribe_case(callback: CallbackQuery):
-    """Відписка від справи"""
+    """Підтвердження відписки від справи"""
+    case_number = callback.data.split(":", 2)[-1]
+    
+    async with AsyncSessionLocal() as session:
+        case_repo = CaseSubscriptionRepository(session)
+        cases = await case_repo.get_user_cases(callback.from_user.id)
+        case_obj = next((c for c in cases if c.case_number == case_number), None)
+        name = case_obj.case_name if case_obj and case_obj.case_name else ""
+    
+    name_line = f"\n├ Опис: {name}" if name else ""
+    await callback.message.edit_text(
+        f"⚠️ <b>Видалити справу з моніторингу?</b>\n\n"
+        f"├ Номер: <code>{case_number}</code>{name_line}\n"
+        f"└ Ви більше не отримуватимете сповіщення по цій справі.",
+        reply_markup=confirm_case_unsub_keyboard(case_number),
+        parse_mode="HTML"
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("confirm:caseunsub:"))
+async def callback_confirm_case_unsub(callback: CallbackQuery):
+    """Підтвердження видалення справи з моніторингу"""
     case_number = callback.data.split(":", 2)[-1]
     
     async with AsyncSessionLocal() as session:
         case_repo = CaseSubscriptionRepository(session)
         await case_repo.unsubscribe(callback.from_user.id, case_number)
     
-    await callback.answer(f"Справу {case_number} видалено з моніторингу")
+    logger.info(f"User {callback.from_user.id} unsubscribed from case {case_number}")
     
-    # Refresh list
-    async with AsyncSessionLocal() as session:
-        case_repo = CaseSubscriptionRepository(session)
-        cases = await case_repo.get_user_cases(callback.from_user.id)
-    
-    if not cases:
-        await callback.message.edit_text(
-            "📌 <b>Мої справи (моніторинг)</b>\n\n"
-            "У вас немає справ на моніторингу.",
-            reply_markup=my_cases_keyboard(),
-            parse_mode="HTML"
-        )
-    else:
-        page_cases = cases[:10]
-        total_pages = (len(cases) + 9) // 10
-        text = "📌 <b>Мої справи (моніторинг)</b>\n\n"
-        text += "<i>Натисніть ❌ щоб видалити справу з моніторингу:</i>\n\n"
-        for i, c in enumerate(page_cases, 1):
-            name = f" — {c.case_name}" if c.case_name else ""
-            text += f"{i}. <code>{c.case_number}</code>{name}\n"
-        
-        await callback.message.edit_text(
-            text, 
-            reply_markup=my_cases_keyboard(0, total_pages, page_cases), 
-            parse_mode="HTML"
-        )
+    await callback.message.edit_text(
+        f"✅ Справу <code>{case_number}</code> видалено з моніторингу.",
+        reply_markup=back_to_main_keyboard(),
+        parse_mode="HTML"
+    )
+    await callback.answer()
 
 
 # === Contractor Check (Перевірка контрагента) ===
