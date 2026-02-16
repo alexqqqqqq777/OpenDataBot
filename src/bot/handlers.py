@@ -15,9 +15,9 @@ from src.bot.keyboards import (
     main_menu_keyboard, companies_menu_keyboard, cases_menu_keyboard,
     stats_keyboard, settings_keyboard, sync_keyboard,
     company_actions_keyboard, confirm_delete_keyboard, confirm_unsub_keyboard,
-    back_to_main_keyboard, cancel_keyboard, pagination_keyboard,
-    threat_level_filter_keyboard, my_subs_keyboard, my_cases_keyboard,
-    contractor_menu_keyboard, contractor_result_keyboard
+    admin_company_list_keyboard, back_to_main_keyboard, cancel_keyboard,
+    pagination_keyboard, threat_level_filter_keyboard, my_subs_keyboard,
+    my_cases_keyboard, contractor_menu_keyboard, contractor_result_keyboard
 )
 from src.services.contractor_formatter import ContractorFormatter, PersonDataParser, CompanyDataParser
 from src.utils import normalize_case_number
@@ -418,13 +418,21 @@ async def cmd_add_company(message: Message, state: FSMContext):
 @router.callback_query(F.data == "company:list")
 async def callback_company_list(callback: CallbackQuery):
     """Список компаній (тільки для адміна)"""
-    user_id = callback.from_user.id
-    
-    # Звичайний користувач бачить свої підписки
-    if user_id not in settings.admin_ids:
+    if not _is_admin(callback.from_user.id):
         await show_my_subs_page(callback, 0)
         return
-    
+    await _show_admin_company_list(callback, 0)
+
+
+@router.callback_query(F.data.startswith("complist:page:"))
+async def callback_company_list_page(callback: CallbackQuery):
+    """Пагінація списку компаній (адмін)"""
+    page = int(callback.data.split(":")[2])
+    await _show_admin_company_list(callback, page)
+
+
+async def _show_admin_company_list(callback: CallbackQuery, page: int = 0):
+    """Показати список компаній для адміна з кнопками"""
     async with AsyncSessionLocal() as session:
         repo = CompanyRepository(session)
         companies = await repo.get_all_companies()
@@ -433,25 +441,71 @@ async def callback_company_list(callback: CallbackQuery):
             await callback.message.edit_text(
                 "📋 <b>Список компаній порожній</b>\n\n"
                 "Натисніть «Додати компанію» щоб почати моніторинг.",
-                reply_markup=companies_menu_keyboard(),
+                reply_markup=companies_menu_keyboard(is_admin=True),
                 parse_mode="HTML"
             )
             await callback.answer()
             return
         
-        text = "📋 <b>Компанії на моніторингу:</b>\n\n"
-        
-        for i, c in enumerate(companies, 1):
-            status = "🟢" if c.is_active else "🔴"
-            name = c.company_name or "Без назви"
-            text += f"{i}. {status} <code>{c.edrpou}</code>\n    └ {name}\n"
-        
         active = sum(1 for c in companies if c.is_active)
-        text += f"\n📊 Всього: {len(companies)} | Активних: {active}"
+        companies_data = [
+            (c.edrpou, c.company_name or "Без назви", c.is_active) 
+            for c in companies
+        ]
+        
+        text = (
+            f"📋 <b>Компанії на моніторингу</b>\n\n"
+            f"Всього: <b>{len(companies)}</b> | "
+            f"🟢 Активних: <b>{active}</b> | "
+            f"🔴 Пауза: <b>{len(companies) - active}</b>\n\n"
+            f"<i>Натисніть на компанію для керування</i>"
+        )
         
         await callback.message.edit_text(
             text,
-            reply_markup=companies_menu_keyboard(),
+            reply_markup=admin_company_list_keyboard(companies_data, page),
+            parse_mode="HTML"
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("company:view:"))
+async def callback_company_view(callback: CallbackQuery):
+    """Картка компанії з діями (адмін)"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("⛔ Доступно тільки адміністратору", show_alert=True)
+        return
+    
+    edrpou = callback.data.split(":")[2]
+    
+    async with AsyncSessionLocal() as session:
+        repo = CompanyRepository(session)
+        user_sub_repo = UserSubscriptionRepository(session)
+        company = await repo.get_company(edrpou)
+        
+        if not company:
+            await callback.message.edit_text(
+                f"❌ Компанію <code>{edrpou}</code> не знайдено.",
+                reply_markup=back_to_main_keyboard(),
+                parse_mode="HTML"
+            )
+            await callback.answer()
+            return
+        
+        subscribers = await user_sub_repo.get_users_for_edrpou(edrpou)
+        status = "🟢 Активна" if company.is_active else "🔴 Призупинена"
+        name = company.company_name or "Без назви"
+        
+        text = (
+            f"🏢 <b>{name}</b>\n\n"
+            f"├ ЄДРПОУ: <code>{edrpou}</code>\n"
+            f"├ Статус: {status}\n"
+            f"└ Підписників: <b>{len(subscribers)}</b>"
+        )
+        
+        await callback.message.edit_text(
+            text,
+            reply_markup=company_actions_keyboard(edrpou, company.is_active),
             parse_mode="HTML"
         )
     await callback.answer()

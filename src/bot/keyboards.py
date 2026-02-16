@@ -262,26 +262,58 @@ def sync_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def company_actions_keyboard(edrpou: str, is_active: bool = True) -> InlineKeyboardMarkup:
-    """Дії з компанією"""
+def admin_company_list_keyboard(companies: list, page: int = 0, per_page: int = 10) -> InlineKeyboardMarkup:
+    """Список компаній для адміна з кнопками вибору та пагінацією.
+    companies: list of (edrpou, name, is_active) tuples"""
     builder = InlineKeyboardBuilder()
     
-    builder.row(
-        InlineKeyboardButton(text="📋 Справи компанії", callback_data=f"company:cases:{edrpou}"),
-        InlineKeyboardButton(text="ℹ️ Інформація", callback_data=f"company:info:{edrpou}")
-    )
+    total = len(companies)
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    page = max(0, min(page, total_pages - 1))
+    start = page * per_page
+    page_items = companies[start:start + per_page]
+    
+    for edrpou, name, is_active in page_items:
+        status = "🟢" if is_active else "🔴"
+        short_name = name[:22] + "…" if len(name) > 23 else name
+        builder.row(
+            InlineKeyboardButton(
+                text=f"{status} {short_name} ({edrpou})",
+                callback_data=f"company:view:{edrpou}"
+            )
+        )
+    
+    # Пагінація
+    nav_buttons = []
+    if page > 0:
+        nav_buttons.append(InlineKeyboardButton(text="◀️", callback_data=f"complist:page:{page-1}"))
+    if total_pages > 1:
+        nav_buttons.append(InlineKeyboardButton(text=f"{page+1}/{total_pages}", callback_data="complist:info"))
+    if page < total_pages - 1:
+        nav_buttons.append(InlineKeyboardButton(text="▶️", callback_data=f"complist:page:{page+1}"))
+    if nav_buttons:
+        builder.row(*nav_buttons)
+    
+    builder.row(InlineKeyboardButton(text="🔙 Меню компаній", callback_data="menu:companies"))
+    
+    return builder.as_markup()
+
+
+def company_actions_keyboard(edrpou: str, is_active: bool = True) -> InlineKeyboardMarkup:
+    """Дії з компанією (адмін)"""
+    builder = InlineKeyboardBuilder()
     
     if is_active:
         builder.row(
-            InlineKeyboardButton(text="⏸️ Призупинити", callback_data=f"company:pause:{edrpou}")
+            InlineKeyboardButton(text="⏸️ Призупинити моніторинг", callback_data=f"company:pause:{edrpou}")
         )
     else:
         builder.row(
-            InlineKeyboardButton(text="▶️ Відновити", callback_data=f"company:resume:{edrpou}")
+            InlineKeyboardButton(text="▶️ Відновити моніторинг", callback_data=f"company:resume:{edrpou}")
         )
     
     builder.row(
-        InlineKeyboardButton(text="🗑️ Видалити", callback_data=f"company:delete:{edrpou}")
+        InlineKeyboardButton(text="🗑️ Видалити з моніторингу", callback_data=f"company:delete:{edrpou}")
     )
     builder.row(
         InlineKeyboardButton(text="🔙 До списку", callback_data="company:list")
