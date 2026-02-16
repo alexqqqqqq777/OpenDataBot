@@ -258,6 +258,110 @@ sudo journalctl -u opendatabot -f   # перевірити логи
 
 ---
 
+## Міграція на новий сервер
+
+### Передумови
+- Новий сервер з Ubuntu 22.04+
+- SSH-доступ до нового сервера
+- Файл `DEPLOY_KEYS.env` з реальними ключами (передається окремо, **НЕ** в Git)
+- Файл `court_monitor.db` з робочими даними (передається окремо, **НЕ** в Git)
+
+### Крок 1: Клонування репозиторію
+```bash
+ssh deployer@NEW_SERVER
+cd ~
+git clone https://github.com/alexqqqqqq777/OpenDataBot.git
+cd OpenDataBot
+```
+
+### Крок 2: Встановлення залежностей
+```bash
+sudo apt update && sudo apt install -y python3.11 python3.11-venv
+python3.11 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Крок 3: Конфігурація
+```bash
+# Скопіювати .env з реальними ключами (файл DEPLOY_KEYS.env → .env)
+scp DEPLOY_KEYS.env deployer@NEW_SERVER:~/OpenDataBot/.env
+chmod 600 ~/OpenDataBot/.env
+```
+
+### Крок 4: Міграція бази даних
+⚠️ **БД містить усі підписки, компанії, справи, стан синхронізації.**
+
+```bash
+# Зі старого сервера (або з переданого файлу):
+scp court_monitor.db deployer@NEW_SERVER:~/OpenDataBot/court_monitor.db
+
+# Перевірка цілісності:
+sqlite3 ~/OpenDataBot/court_monitor.db "PRAGMA integrity_check;"
+# Очікуваний результат: ok
+
+# Перевірка вмісту:
+sqlite3 ~/OpenDataBot/court_monitor.db "
+  SELECT 'companies:', count(*) FROM monitored_companies
+  UNION ALL SELECT 'user_subs:', count(*) FROM user_subscriptions
+  UNION ALL SELECT 'case_subs:', count(*) FROM case_subscriptions
+  UNION ALL SELECT 'ws_cases:', count(*) FROM worksection_cases;"
+```
+
+### Крок 5: Налаштування systemd
+```bash
+sudo tee /etc/systemd/system/opendatabot.service > /dev/null << 'EOF'
+[Unit]
+Description=OpenDataBot Telegram Bot
+After=network.target
+
+[Service]
+Type=simple
+User=deployer
+WorkingDirectory=/home/deployer/OpenDataBot
+ExecStart=/home/deployer/OpenDataBot/venv/bin/python3 run.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable opendatabot
+sudo systemctl start opendatabot
+```
+
+### Крок 6: Перевірка
+```bash
+sudo systemctl status opendatabot
+sudo journalctl -u opendatabot -n 20 --no-pager
+```
+
+---
+
+## Доступ до сервера
+
+### Користувач `deployer` (обмежений)
+Для адміністратора створено окремого користувача з мінімальними правами:
+
+```bash
+ssh -i ~/.ssh/KEY deployer@54.38.53.70
+```
+
+**Дозволено:**
+- Перезапуск сервісу: `sudo systemctl restart opendatabot.service`
+- Зупинка/запуск: `sudo systemctl stop/start opendatabot.service`
+- Статус: `sudo systemctl status opendatabot.service`
+- Оновлення коду через `git pull`
+- Доступ до директорії `/home/deployer/OpenDataBot/`
+
+**Заборонено:**
+- `sudo` на інші команди
+- Доступ до інших директорій/сервісів
+
+---
+
 ## Обслуговування
 
 ### Перевірка статусу
@@ -271,12 +375,12 @@ sudo systemctl status opendatabot
 sudo journalctl -u opendatabot --no-pager -n 50
 
 # Логи ODB API (з ротацією, макс 10MB × 5)
-tail -f /home/ubuntu/OpenDataBot/logs/opendatabot_history.log
+tail -f /home/deployer/OpenDataBot/logs/opendatabot_history.log
 ```
 
 ### Оновлення коду
 ```bash
-cd /home/ubuntu/OpenDataBot
+cd /home/deployer/OpenDataBot
 git fetch origin main && git reset --hard origin/main
 sudo systemctl restart opendatabot
 ```
@@ -284,13 +388,13 @@ sudo systemctl restart opendatabot
 ### Бекап
 ```bash
 mkdir -p ~/backups
-cp /home/ubuntu/OpenDataBot/court_monitor.db ~/backups/court_monitor_$(date +%Y%m%d).db
+cp /home/deployer/OpenDataBot/court_monitor.db ~/backups/court_monitor_$(date +%Y%m%d).db
 ```
 
 ### Перевірка диску
 ```bash
 df -h /
-du -sh /home/ubuntu/OpenDataBot/
+du -sh /home/deployer/OpenDataBot/
 ```
 
 ---
