@@ -176,7 +176,7 @@ sudo systemctl status opendatabot
 
 | Змінна | Опис | Приклад | Де отримати |
 |--------|------|---------|-------------|
-| `TELEGRAM_BOT_TOKEN` | Токен Telegram бота | `8417603506:AAFc...` | [@BotFather](https://t.me/BotFather) |
+| `TELEGRAM_BOT_TOKEN` | Токен Telegram бота | `123456789:AABBcc...` | [@BotFather](https://t.me/BotFather) |
 | `OPENDATABOT_API_KEY` | Ключ API OpenDataBot (моніторинг, підписки) | `abc123...` | [opendatabot.ua/api](https://opendatabot.ua/my/api) |
 | `OPENDATABOT_FULL_API_KEY` | Ключ API OpenDataBot (повна перевірка компаній) | `xyz789...` | Той самий кабінет, може бути окремий тариф |
 | `CLARITY_API_KEY` | Ключ API Clarity Project | `clr_...` | [clarity-project.info/info/api](https://clarity-project.info/info/api/) |
