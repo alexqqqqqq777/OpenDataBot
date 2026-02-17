@@ -47,6 +47,10 @@ class AddCaseStates(StatesGroup):
     waiting_for_case_name = State()
 
 
+class AccessRequestStates(StatesGroup):
+    waiting_for_fio = State()
+
+
 class UserSubscribeStates(StatesGroup):
     waiting_for_edrpou = State()
 
@@ -1560,52 +1564,24 @@ async def callback_contractor_menu(callback: CallbackQuery, state: FSMContext):
                     await callback.answer()
                     return
                 
-                # Register user if not exists, then request access
+                # Register user if not exists
                 if not bot_user:
                     bot_user = await repo.get_or_create(
                         telegram_user_id=user_id,
                         username=callback.from_user.username,
                         full_name=callback.from_user.full_name
                     )
-                await repo.set_access_requested(user_id)
                 
+                # Ask for FIO before sending request
+                await state.set_state(AccessRequestStates.waiting_for_fio)
                 await callback.message.edit_text(
                     "🔒 <b>Доступ обмежений</b>\n\n"
                     "Розділ «Перевірка контрагентів» потребує дозволу адміністратора.\n\n"
-                    "✅ Запит на доступ відправлено. Очікуйте підтвердження.",
+                    "Введіть ваше <b>ПІБ</b> (Прізвище Ім'я По батькові) для запиту доступу:",
                     reply_markup=back_to_main_keyboard(),
                     parse_mode="HTML"
                 )
                 await callback.answer()
-                
-                # Notify admins
-                from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-                from aiogram.utils.keyboard import InlineKeyboardBuilder
-                
-                name = callback.from_user.full_name or "—"
-                uname = f"@{callback.from_user.username}" if callback.from_user.username else "—"
-                
-                kb = InlineKeyboardBuilder()
-                kb.row(
-                    InlineKeyboardButton(text="✅ Дозволити", callback_data=f"access:grant:{user_id}"),
-                    InlineKeyboardButton(text="❌ Відхилити", callback_data=f"access:deny:{user_id}")
-                )
-                
-                bot = callback.bot
-                for admin_id in settings.admin_ids:
-                    try:
-                        await bot.send_message(
-                            admin_id,
-                            f"🔔 <b>Запит доступу до перевірки контрагентів</b>\n\n"
-                            f"👤 {name}\n"
-                            f"🆔 <code>{user_id}</code>\n"
-                            f"📱 {uname}",
-                            reply_markup=kb.as_markup(),
-                            parse_mode="HTML"
-                        )
-                    except Exception as e:
-                        logger.warning(f"Failed to notify admin {admin_id}: {e}")
-                
                 return
     
     await state.clear()
@@ -1634,6 +1610,78 @@ async def callback_contractor_menu(callback: CallbackQuery, state: FSMContext):
         parse_mode="HTML"
     )
     await callback.answer()
+
+
+@router.message(AccessRequestStates.waiting_for_fio)
+async def process_access_request_fio(message: Message, state: FSMContext):
+    """Обробка ПІБ при запиті доступу до перевірки контрагентів"""
+    fio = message.text.strip()
+    
+    if len(fio) < 3 or len(fio.split()) < 2:
+        await message.answer(
+            "❌ Введіть повне ПІБ (мінімум прізвище та ім'я).\n"
+            "Наприклад: <b>Іванов Іван Іванович</b>",
+            reply_markup=back_to_main_keyboard(),
+            parse_mode="HTML"
+        )
+        return
+    
+    user_id = message.from_user.id
+    await state.clear()
+    
+    # Save FIO to bot_user and mark as requested
+    async with AsyncSessionLocal() as session:
+        repo = BotUserRepository(session)
+        bot_user = await repo.get_or_create(
+            telegram_user_id=user_id,
+            username=message.from_user.username,
+            full_name=fio
+        )
+        # Update full_name with real FIO
+        from sqlalchemy import update as sql_update
+        from src.storage.models import BotUser
+        await session.execute(
+            sql_update(BotUser)
+            .where(BotUser.telegram_user_id == user_id)
+            .values(full_name=fio, contractor_access_requested=True)
+        )
+        await session.commit()
+    
+    await message.answer(
+        "✅ <b>Запит на доступ відправлено</b>\n\n"
+        f"ПІБ: <b>{fio}</b>\n"
+        "Очікуйте підтвердження від адміністратора.",
+        reply_markup=back_to_main_keyboard(),
+        parse_mode="HTML"
+    )
+    
+    # Notify admins
+    from aiogram.types import InlineKeyboardButton
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    
+    uname = f"@{message.from_user.username}" if message.from_user.username else "—"
+    tg_name = message.from_user.full_name or "—"
+    
+    kb = InlineKeyboardBuilder()
+    kb.row(
+        InlineKeyboardButton(text="✅ Дозволити", callback_data=f"access:grant:{user_id}"),
+        InlineKeyboardButton(text="❌ Відхилити", callback_data=f"access:deny:{user_id}")
+    )
+    
+    for admin_id in settings.admin_ids:
+        try:
+            await message.bot.send_message(
+                admin_id,
+                f"🔔 <b>Запит доступу до перевірки контрагентів</b>\n\n"
+                f"📝 ПІБ: <b>{fio}</b>\n"
+                f"👤 Telegram: {tg_name}\n"
+                f"📱 {uname}\n"
+                f"🆔 <code>{user_id}</code>",
+                reply_markup=kb.as_markup(),
+                parse_mode="HTML"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to notify admin {admin_id}: {e}")
 
 
 @router.callback_query(F.data.startswith("access:grant:"))
