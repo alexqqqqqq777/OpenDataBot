@@ -211,3 +211,18 @@ class UserIdentity(Base):
     inn: Mapped[str] = mapped_column(String(10), nullable=False)  # ІПН
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class BotUser(Base):
+    """Registered bot users with access control"""
+    __tablename__ = "bot_users"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    telegram_user_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=False, index=True)
+    username: Mapped[Optional[str]] = mapped_column(String(255))
+    full_name: Mapped[Optional[str]] = mapped_column(String(255))
+    contractor_access: Mapped[bool] = mapped_column(Boolean, default=False)
+    contractor_access_requested: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

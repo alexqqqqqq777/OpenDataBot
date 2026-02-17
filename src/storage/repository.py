@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.storage.models import (
     MonitoredCompany, OpenDataBotSubscription, WorksectionCase,
     CourtCase, NotificationSent, SyncState, UserSubscription,
-    UserSettings, CaseSubscription
+    UserSettings, CaseSubscription, BotUser
 )
 import logging
 
@@ -501,3 +501,85 @@ class CaseSubscriptionRepository:
             .limit(1)
         )
         return result.scalar_one_or_none() is not None
+
+
+class BotUserRepository:
+    """Repository for bot user access control"""
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def get_or_create(self, telegram_user_id: int, username: str = None, full_name: str = None) -> BotUser:
+        """Get or create bot user on /start"""
+        result = await self.session.execute(
+            select(BotUser).where(BotUser.telegram_user_id == telegram_user_id)
+        )
+        user = result.scalar_one_or_none()
+        
+        if user:
+            # Update profile info if changed
+            changed = False
+            if username and user.username != username:
+                user.username = username
+                changed = True
+            if full_name and user.full_name != full_name:
+                user.full_name = full_name
+                changed = True
+            if changed:
+                await self.session.commit()
+            return user
+        
+        user = BotUser(
+            telegram_user_id=telegram_user_id,
+            username=username,
+            full_name=full_name,
+            contractor_access=False,
+            contractor_access_requested=False,
+            is_active=True
+        )
+        self.session.add(user)
+        await self.session.commit()
+        await self.session.refresh(user)
+        return user
+    
+    async def get_user(self, telegram_user_id: int) -> Optional[BotUser]:
+        """Get bot user by telegram ID"""
+        result = await self.session.execute(
+            select(BotUser).where(BotUser.telegram_user_id == telegram_user_id)
+        )
+        return result.scalar_one_or_none()
+    
+    async def has_contractor_access(self, telegram_user_id: int) -> bool:
+        """Check if user has contractor check access"""
+        result = await self.session.execute(
+            select(BotUser.contractor_access)
+            .where(BotUser.telegram_user_id == telegram_user_id)
+        )
+        row = result.scalar_one_or_none()
+        return row is True
+    
+    async def set_contractor_access(self, telegram_user_id: int, granted: bool) -> bool:
+        """Grant or revoke contractor access"""
+        result = await self.session.execute(
+            update(BotUser)
+            .where(BotUser.telegram_user_id == telegram_user_id)
+            .values(contractor_access=granted, contractor_access_requested=False)
+        )
+        await self.session.commit()
+        return result.rowcount > 0
+    
+    async def set_access_requested(self, telegram_user_id: int) -> bool:
+        """Mark that user has requested contractor access"""
+        result = await self.session.execute(
+            update(BotUser)
+            .where(BotUser.telegram_user_id == telegram_user_id)
+            .values(contractor_access_requested=True)
+        )
+        await self.session.commit()
+        return result.rowcount > 0
+    
+    async def get_all_users(self) -> List[BotUser]:
+        """Get all bot users"""
+        result = await self.session.execute(
+            select(BotUser).order_by(BotUser.created_at)
+        )
+        return list(result.scalars().all())

@@ -7,7 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 from src.storage import (
     AsyncSessionLocal, CompanyRepository, NotificationRepository,
     WorksectionCaseRepository, CourtCaseRepository, UserSubscriptionRepository,
-    UserSettingsRepository, CaseSubscriptionRepository
+    UserSettingsRepository, CaseSubscriptionRepository, BotUserRepository
 )
 from src.utils import validate_edrpou, format_edrpou
 from src.clients import OpenDataBotClient, WorksectionClient
@@ -110,6 +110,16 @@ def identify_input_type(text: str) -> tuple:
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     """Головне меню"""
+    # Register / update user in DB
+    async with AsyncSessionLocal() as session:
+        repo = BotUserRepository(session)
+        user = message.from_user
+        await repo.get_or_create(
+            telegram_user_id=user.id,
+            username=user.username,
+            full_name=user.full_name
+        )
+    
     text = """
 ⚖️ <b>Моніторинг судових справ</b>
 
@@ -1529,6 +1539,75 @@ def _format_api_limits_info(stats: dict) -> str:
 @router.callback_query(F.data == "menu:contractor")
 async def callback_contractor_menu(callback: CallbackQuery, state: FSMContext):
     """Меню перевірки контрагента"""
+    user_id = callback.from_user.id
+    
+    # Admins always have access
+    if not _is_admin(user_id):
+        async with AsyncSessionLocal() as session:
+            repo = BotUserRepository(session)
+            has_access = await repo.has_contractor_access(user_id)
+            
+            if not has_access:
+                # Check if already requested
+                bot_user = await repo.get_user(user_id)
+                if bot_user and bot_user.contractor_access_requested:
+                    await callback.message.edit_text(
+                        "⏳ <b>Запит на доступ вже відправлено</b>\n\n"
+                        "Очікуйте підтвердження від адміністратора.",
+                        reply_markup=back_to_main_keyboard(),
+                        parse_mode="HTML"
+                    )
+                    await callback.answer()
+                    return
+                
+                # Register user if not exists, then request access
+                if not bot_user:
+                    bot_user = await repo.get_or_create(
+                        telegram_user_id=user_id,
+                        username=callback.from_user.username,
+                        full_name=callback.from_user.full_name
+                    )
+                await repo.set_access_requested(user_id)
+                
+                await callback.message.edit_text(
+                    "🔒 <b>Доступ обмежений</b>\n\n"
+                    "Розділ «Перевірка контрагентів» потребує дозволу адміністратора.\n\n"
+                    "✅ Запит на доступ відправлено. Очікуйте підтвердження.",
+                    reply_markup=back_to_main_keyboard(),
+                    parse_mode="HTML"
+                )
+                await callback.answer()
+                
+                # Notify admins
+                from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+                from aiogram.utils.keyboard import InlineKeyboardBuilder
+                
+                name = callback.from_user.full_name or "—"
+                uname = f"@{callback.from_user.username}" if callback.from_user.username else "—"
+                
+                kb = InlineKeyboardBuilder()
+                kb.row(
+                    InlineKeyboardButton(text="✅ Дозволити", callback_data=f"access:grant:{user_id}"),
+                    InlineKeyboardButton(text="❌ Відхилити", callback_data=f"access:deny:{user_id}")
+                )
+                
+                bot = callback.bot
+                for admin_id in settings.admin_ids:
+                    try:
+                        await bot.send_message(
+                            admin_id,
+                            f"🔔 <b>Запит доступу до перевірки контрагентів</b>\n\n"
+                            f"👤 {name}\n"
+                            f"🆔 <code>{user_id}</code>\n"
+                            f"📱 {uname}",
+                            reply_markup=kb.as_markup(),
+                            parse_mode="HTML"
+                        )
+                    except Exception as e:
+                        logger.warning(f"Failed to notify admin {admin_id}: {e}")
+                
+                return
+    
     await state.clear()
     await state.set_state(ContractorCheckStates.waiting_for_auto_input)
     
@@ -1555,6 +1634,183 @@ async def callback_contractor_menu(callback: CallbackQuery, state: FSMContext):
         parse_mode="HTML"
     )
     await callback.answer()
+
+
+@router.callback_query(F.data.startswith("access:grant:"))
+async def callback_access_grant(callback: CallbackQuery):
+    """Адмін дозволяє доступ до перевірки контрагентів"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Тільки для адміністраторів", show_alert=True)
+        return
+    
+    target_user_id = int(callback.data.split(":")[2])
+    
+    async with AsyncSessionLocal() as session:
+        repo = BotUserRepository(session)
+        success = await repo.set_contractor_access(target_user_id, True)
+    
+    if success:
+        await callback.message.edit_text(
+            callback.message.text + "\n\n✅ <b>Доступ надано</b>",
+            parse_mode="HTML"
+        )
+        # Notify user
+        try:
+            await callback.bot.send_message(
+                target_user_id,
+                "✅ <b>Доступ до перевірки контрагентів надано!</b>\n\n"
+                "Тепер ви можете використовувати розділ «Перевірка контрагентів».",
+                reply_markup=back_to_main_keyboard(),
+                parse_mode="HTML"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to notify user {target_user_id}: {e}")
+    else:
+        await callback.answer("Користувача не знайдено", show_alert=True)
+    
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("access:deny:"))
+async def callback_access_deny(callback: CallbackQuery):
+    """Адмін відхиляє доступ до перевірки контрагентів"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Тільки для адміністраторів", show_alert=True)
+        return
+    
+    target_user_id = int(callback.data.split(":")[2])
+    
+    async with AsyncSessionLocal() as session:
+        repo = BotUserRepository(session)
+        # Reset request flag but don't grant access
+        from sqlalchemy import update as sql_update
+        from src.storage.models import BotUser
+        await session.execute(
+            sql_update(BotUser)
+            .where(BotUser.telegram_user_id == target_user_id)
+            .values(contractor_access_requested=False)
+        )
+        await session.commit()
+    
+    await callback.message.edit_text(
+        callback.message.text + "\n\n❌ <b>Доступ відхилено</b>",
+        parse_mode="HTML"
+    )
+    
+    # Notify user
+    try:
+        await callback.bot.send_message(
+            target_user_id,
+            "❌ <b>Запит на доступ до перевірки контрагентів відхилено.</b>\n\n"
+            "Зверніться до адміністратора за деталями.",
+            reply_markup=back_to_main_keyboard(),
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        logger.warning(f"Failed to notify user {target_user_id}: {e}")
+    
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("access:revoke:"))
+async def callback_access_revoke(callback: CallbackQuery):
+    """Адмін відкликає доступ до перевірки контрагентів"""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Тільки для адміністраторів", show_alert=True)
+        return
+    
+    target_user_id = int(callback.data.split(":")[2])
+    
+    async with AsyncSessionLocal() as session:
+        repo = BotUserRepository(session)
+        await repo.set_contractor_access(target_user_id, False)
+    
+    await callback.answer("✅ Доступ відкликано", show_alert=True)
+    # Refresh user list
+    await _show_users_list(callback)
+
+
+@router.message(Command("users"))
+async def cmd_users(message: Message):
+    """Список користувачів бота (тільки адмін)"""
+    if not _is_admin(message.from_user.id):
+        return
+    
+    async with AsyncSessionLocal() as session:
+        repo = BotUserRepository(session)
+        users = await repo.get_all_users()
+    
+    if not users:
+        await message.answer("📋 Користувачів поки немає.", parse_mode="HTML")
+        return
+    
+    text = f"👥 <b>Користувачі бота ({len(users)})</b>\n\n"
+    for u in users:
+        name = u.full_name or "—"
+        uname = f"@{u.username}" if u.username else ""
+        access = "✅" if u.contractor_access else "⏳" if u.contractor_access_requested else "❌"
+        is_adm = " 👑" if u.telegram_user_id in settings.admin_ids else ""
+        text += f"{access} <b>{name}</b> {uname}{is_adm}\n    ID: <code>{u.telegram_user_id}</code>\n"
+    
+    text += "\n<i>✅ = доступ до перевірки, ❌ = без доступу, ⏳ = очікує</i>"
+    
+    # Add grant/revoke buttons for non-admin users
+    from aiogram.types import InlineKeyboardButton
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    kb = InlineKeyboardBuilder()
+    for u in users:
+        if u.telegram_user_id in settings.admin_ids:
+            continue
+        name_short = (u.full_name or str(u.telegram_user_id))[:20]
+        if u.contractor_access:
+            kb.row(InlineKeyboardButton(
+                text=f"🚫 Відкликати: {name_short}",
+                callback_data=f"access:revoke:{u.telegram_user_id}"
+            ))
+        else:
+            kb.row(InlineKeyboardButton(
+                text=f"✅ Надати: {name_short}",
+                callback_data=f"access:grant:{u.telegram_user_id}"
+            ))
+    
+    await message.answer(text, reply_markup=kb.as_markup(), parse_mode="HTML")
+
+
+async def _show_users_list(callback: CallbackQuery):
+    """Helper to refresh users list in admin message"""
+    async with AsyncSessionLocal() as session:
+        repo = BotUserRepository(session)
+        users = await repo.get_all_users()
+    
+    text = f"👥 <b>Користувачі бота ({len(users)})</b>\n\n"
+    for u in users:
+        name = u.full_name or "—"
+        uname = f"@{u.username}" if u.username else ""
+        access = "✅" if u.contractor_access else "⏳" if u.contractor_access_requested else "❌"
+        is_adm = " 👑" if u.telegram_user_id in settings.admin_ids else ""
+        text += f"{access} <b>{name}</b> {uname}{is_adm}\n    ID: <code>{u.telegram_user_id}</code>\n"
+    
+    text += "\n<i>✅ = доступ до перевірки, ❌ = без доступу, ⏳ = очікує</i>"
+    
+    from aiogram.types import InlineKeyboardButton
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    kb = InlineKeyboardBuilder()
+    for u in users:
+        if u.telegram_user_id in settings.admin_ids:
+            continue
+        name_short = (u.full_name or str(u.telegram_user_id))[:20]
+        if u.contractor_access:
+            kb.row(InlineKeyboardButton(
+                text=f"🚫 Відкликати: {name_short}",
+                callback_data=f"access:revoke:{u.telegram_user_id}"
+            ))
+        else:
+            kb.row(InlineKeyboardButton(
+                text=f"✅ Надати: {name_short}",
+                callback_data=f"access:grant:{u.telegram_user_id}"
+            ))
+    
+    await callback.message.edit_text(text, reply_markup=kb.as_markup(), parse_mode="HTML")
 
 
 @router.callback_query(F.data == "contractor:company")
