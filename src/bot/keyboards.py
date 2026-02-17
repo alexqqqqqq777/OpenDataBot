@@ -188,14 +188,17 @@ def contractor_menu_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def contractor_result_keyboard(show_pdf: bool = False) -> InlineKeyboardMarkup:
+def contractor_result_keyboard(show_pdf: bool = False, show_connections: bool = False) -> InlineKeyboardMarkup:
     """Клавіатура після результату перевірки"""
     builder = InlineKeyboardBuilder()
     
+    pdf_buttons = []
     if show_pdf:
-        builder.row(
-            InlineKeyboardButton(text="📄 PDF звіт", callback_data="pdf:report")
-        )
+        pdf_buttons.append(InlineKeyboardButton(text="📄 PDF звіт", callback_data="pdf:report"))
+    if show_connections:
+        pdf_buttons.append(InlineKeyboardButton(text="� Зв'язки", callback_data="connections:pdf"))
+    if pdf_buttons:
+        builder.row(*pdf_buttons)
     builder.row(
         InlineKeyboardButton(text="🔍 Нова перевірка", callback_data="menu:contractor")
     )
@@ -206,14 +209,17 @@ def contractor_result_keyboard(show_pdf: bool = False) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def contractor_result_with_refresh_keyboard(refresh_callback: str, is_cached: bool = False, show_pdf: bool = False) -> InlineKeyboardMarkup:
+def contractor_result_with_refresh_keyboard(refresh_callback: str, is_cached: bool = False, show_pdf: bool = False, show_connections: bool = False) -> InlineKeyboardMarkup:
     """Клавіатура з кнопкою оновлення для результату перевірки"""
     builder = InlineKeyboardBuilder()
     
+    pdf_buttons = []
     if show_pdf:
-        builder.row(
-            InlineKeyboardButton(text="📄 PDF звіт", callback_data="pdf:report")
-        )
+        pdf_buttons.append(InlineKeyboardButton(text="📄 PDF звіт", callback_data="pdf:report"))
+    if show_connections:
+        pdf_buttons.append(InlineKeyboardButton(text="� Зв'язки", callback_data="connections:pdf"))
+    if pdf_buttons:
+        builder.row(*pdf_buttons)
     if is_cached:
         builder.row(
             InlineKeyboardButton(text="🔄 Оновити дані", callback_data=refresh_callback)

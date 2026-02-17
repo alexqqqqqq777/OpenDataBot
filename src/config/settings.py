@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     CLARITY_API_KEY: str = Field(default="")
     CLARITY_BASE_URL: str = Field(default="https://clarity-project.info/api")
     
+    # Connection Graph (зв'язки контрагентів)
+    CONNECTION_GRAPH_API_KEY: str = Field(default="")
+    CONNECTION_GRAPH_API_URL: str = Field(default="http://54.38.53.70/api/v1/report")
+    
     # Worksection
     WORKSECTION_API_KEY: str = Field(default="")
     WORKSECTION_ACCOUNT: str = Field(default="")

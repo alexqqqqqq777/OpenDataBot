@@ -1884,7 +1884,7 @@ async def _process_combined_inn_check(message: Message, state: FSMContext, code:
         await state.update_data(pdf_data=pdf_data, pdf_code=code, pdf_type='inn')
         
         from src.bot.keyboards import contractor_result_with_refresh_keyboard
-        kb = contractor_result_with_refresh_keyboard(f"combined:refresh:{code}", is_cached=cached is not None, show_pdf=True)
+        kb = contractor_result_with_refresh_keyboard(f"combined:refresh:{code}", is_cached=cached is not None, show_pdf=True, show_connections=True)
         
         await message.answer(text, reply_markup=kb, parse_mode="HTML")
         logger.info(f"User {user_id} auto-checked combined INN {code}")
@@ -2044,6 +2044,72 @@ async def callback_pdf_report(callback: CallbackQuery, state: FSMContext):
         await callback.answer(f"Помилка: {str(e)[:50]}", show_alert=True)
 
 
+@router.callback_query(F.data == "connections:pdf")
+async def callback_connections_pdf(callback: CallbackQuery, state: FSMContext):
+    """Отримання PDF звіту зв'язків з Connection Graph API"""
+    from aiogram.types import BufferedInputFile
+    import aiohttp
+    
+    state_data = await state.get_data()
+    query = state_data.get('pdf_code')
+    
+    if not query:
+        await callback.answer("Немає даних для звіту. Виконайте перевірку спочатку.", show_alert=True)
+        return
+    
+    api_key = settings.CONNECTION_GRAPH_API_KEY
+    api_url = settings.CONNECTION_GRAPH_API_URL
+    
+    if not api_key:
+        await callback.answer("API ключ Connection Graph не налаштований", show_alert=True)
+        return
+    
+    await callback.answer("🔗 Завантажую звіт зв'язків...", show_alert=False)
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            resp = await session.get(
+                api_url,
+                params={"query": str(query), "format": "pdf"},
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=aiohttp.ClientTimeout(total=60)
+            )
+            
+            if resp.status == 404:
+                await callback.message.answer(
+                    f"❌ Зв'язки для <code>{query}</code> не знайдено.",
+                    parse_mode="HTML"
+                )
+                return
+            
+            if resp.status != 200:
+                error_text = await resp.text()
+                logger.error(f"Connection Graph API error {resp.status}: {error_text[:200]}")
+                await callback.message.answer(
+                    f"❌ Помилка API: {resp.status}",
+                    parse_mode="HTML"
+                )
+                return
+            
+            pdf_bytes = await resp.read()
+        
+        safe_name = str(query).replace("/", "_").replace(" ", "_")[:40]
+        doc = BufferedInputFile(pdf_bytes, filename=f"connections_{safe_name}.pdf")
+        await callback.message.answer_document(
+            doc,
+            caption=f"🔗 Звіт зв'язків: <code>{query}</code>",
+            parse_mode="HTML"
+        )
+        
+        logger.info(f"User {callback.from_user.id} got connections PDF for {query}")
+        
+    except asyncio.TimeoutError:
+        await callback.message.answer("⏱ Таймаут запиту. Спробуйте пізніше.")
+    except Exception as e:
+        logger.error(f"Connections PDF error for {query}: {e}")
+        await callback.message.answer(f"❌ Помилка: {str(e)[:100]}", parse_mode="HTML")
+
+
 @router.callback_query(F.data.startswith("combined:refresh:"))
 async def callback_combined_refresh(callback: CallbackQuery, state: FSMContext):
     """Примусове оновлення комплексної перевірки ІПН"""
@@ -2163,7 +2229,7 @@ async def callback_combined_refresh(callback: CallbackQuery, state: FSMContext):
         await state.update_data(pdf_data=pdf_data, pdf_code=code, pdf_type='inn')
         
         from src.bot.keyboards import contractor_result_with_refresh_keyboard
-        kb = contractor_result_with_refresh_keyboard(f"combined:refresh:{code}", is_cached=False, show_pdf=True)
+        kb = contractor_result_with_refresh_keyboard(f"combined:refresh:{code}", is_cached=False, show_pdf=True, show_connections=True)
         
         await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
         logger.info(f"User {user_id} refreshed combined INN {code}")
@@ -2556,7 +2622,7 @@ async def process_contractor_fop(message: Message, state: FSMContext):
         from src.bot.keyboards import contractor_result_with_refresh_keyboard
         for i, msg in enumerate(messages):
             if i == len(messages) - 1:
-                kb = contractor_result_with_refresh_keyboard(f"fop:refresh:{code}", is_cached=True, show_pdf=True)
+                kb = contractor_result_with_refresh_keyboard(f"fop:refresh:{code}", is_cached=True, show_pdf=True, show_connections=True)
             else:
                 kb = None
             await message.answer(msg, reply_markup=kb, parse_mode="HTML")
@@ -2600,7 +2666,7 @@ async def callback_fop_refresh(callback: CallbackQuery, state: FSMContext):
         messages = ContractorFormatter.format_fop(data, cached_at=None)
         
         from src.bot.keyboards import contractor_result_with_refresh_keyboard
-        kb = contractor_result_with_refresh_keyboard(f"fop:refresh:{code}", is_cached=False, show_pdf=True)
+        kb = contractor_result_with_refresh_keyboard(f"fop:refresh:{code}", is_cached=False, show_pdf=True, show_connections=True)
         
         await callback.message.edit_text(messages[0], reply_markup=kb, parse_mode="HTML")
         logger.info(f"User {callback.from_user.id} refreshed FOP {code}")
@@ -2844,7 +2910,7 @@ async def process_contractor_inn(message: Message, state: FSMContext):
         from src.bot.keyboards import contractor_result_with_refresh_keyboard
         for i, msg in enumerate(messages):
             if i == len(messages) - 1:
-                kb = contractor_result_with_refresh_keyboard(f"inn:refresh:{code}", is_cached=True, show_pdf=True)
+                kb = contractor_result_with_refresh_keyboard(f"inn:refresh:{code}", is_cached=True, show_pdf=True, show_connections=True)
             else:
                 kb = None
             await message.answer(msg, reply_markup=kb, parse_mode="HTML")
@@ -2955,7 +3021,7 @@ async def process_user_name(message: Message, state: FSMContext):
         from src.bot.keyboards import contractor_result_with_refresh_keyboard
         for i, msg in enumerate(messages):
             if i == len(messages) - 1:
-                kb = contractor_result_with_refresh_keyboard(f"inn:refresh:{target_inn}", is_cached=True, show_pdf=True)
+                kb = contractor_result_with_refresh_keyboard(f"inn:refresh:{target_inn}", is_cached=True, show_pdf=True, show_connections=True)
             else:
                 kb = None
             await message.answer(msg, reply_markup=kb, parse_mode="HTML")
@@ -3024,7 +3090,7 @@ async def callback_inn_refresh(callback: CallbackQuery, state: FSMContext):
         messages = ContractorFormatter.format_person_by_inn(data, cached_at=None)
         
         from src.bot.keyboards import contractor_result_with_refresh_keyboard
-        kb = contractor_result_with_refresh_keyboard(f"inn:refresh:{code}", is_cached=False, show_pdf=True)
+        kb = contractor_result_with_refresh_keyboard(f"inn:refresh:{code}", is_cached=False, show_pdf=True, show_connections=True)
         
         await callback.message.edit_text(messages[0], reply_markup=kb, parse_mode="HTML")
         logger.info(f"User {callback.from_user.id} refreshed INN {code}")

@@ -727,11 +727,11 @@ class ContractorFormatter:
                     callback_data=f"person:cat:{cat_type}:0"
                 ))
         
-        # PDF report button
-        builder.row(InlineKeyboardButton(
-            text="📄 PDF звіт",
-            callback_data="pdf:report"
-        ))
+        # PDF report + connections buttons
+        builder.row(
+            InlineKeyboardButton(text="📄 PDF звіт", callback_data="pdf:report"),
+            InlineKeyboardButton(text="🔗 Зв'язки", callback_data="connections:pdf")
+        )
         
         # Always show refresh button
         builder.row(InlineKeyboardButton(
@@ -1023,11 +1023,11 @@ class ContractorFormatter:
                     callback_data=f"company:cat:{cat_type}:0"
                 ))
         
-        # PDF report button
-        builder.row(InlineKeyboardButton(
-            text="📄 PDF звіт",
-            callback_data="pdf:report"
-        ))
+        # PDF report + connections buttons
+        builder.row(
+            InlineKeyboardButton(text="📄 PDF звіт", callback_data="pdf:report"),
+            InlineKeyboardButton(text="🔗 Зв'язки", callback_data="connections:pdf")
+        )
         
         # Add refresh button if data is from cache
         if cached_at:
